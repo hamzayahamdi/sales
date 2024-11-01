@@ -15,7 +15,8 @@ export default defineConfig({
         macrosPlugin(),
     ],
     build: {
-        outDir: 'build',
+        outDir: 'dist',
+        emptyOutDir: true,
         rollupOptions: {
             treeshake: 'recommended',
             output: {
