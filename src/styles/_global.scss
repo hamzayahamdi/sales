@@ -1,0 +1,504 @@
+// global template styles
+
+*:not(.with-scrollbar) {
+    scroll-behavior: smooth;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+}
+
+html,
+body,
+#root {
+    overflow-x: hidden;
+    min-height: var(--app-height);
+}
+
+html {
+    user-select: none;
+
+    &.no-transition * {
+        transition: none !important;
+    }
+
+    &.no-scroll {
+        overflow: hidden;
+    }
+
+    // better fit for a big screens
+    @media screen and (min-width: 2560px) {
+        &[data-ratio="1"] {
+            zoom: 1.25;
+        }
+    }
+}
+
+body {
+    background: var(--body);
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+button, a {
+    transition: var(--transition);
+
+    &:focus {
+        outline: none;
+    }
+}
+
+label {
+    cursor: pointer;
+}
+
+textarea {
+    resize: none;
+    white-space: normal !important;
+}
+
+textarea, input {
+    &[readonly] {
+        cursor: default;
+    }
+
+    &:focus {
+        outline: none;
+    }
+
+    &::placeholder {
+        color: var(--label);
+        transition: opacity var(--transition);
+    }
+
+    &:focus::placeholder {
+        opacity: 0;
+    }
+}
+
+img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.with-scrollbar {
+    /* Firefox */
+    scrollbar-width: auto;
+    scrollbar-color: var(--scrollbar) var(--widget);
+
+    /* Chrome, Edge, and Safari */
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar);
+        border-radius: 100px;
+    }
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    &.fluid {
+        min-height: 100vh;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        #mainMenu {
+            display: none !important;
+        }
+
+        @screen md {
+            padding: 32px;
+        }
+    }
+
+    &:not(.fluid) {
+        .layout {
+            margin: -24px;
+        }
+
+        @screen xl {
+            .layout {
+                margin: -32px;
+            }
+        }
+
+        @screen 4xl {
+            padding: 50px 32px 50px 0;
+            display: grid;
+            grid-template-columns: minmax(0, var(--menu-width)) minmax(0, 1fr);
+            gap: 32px;
+        }
+    }
+}
+
+.absolute-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+svg:focus,
+svg *:focus {
+    outline: none !important;
+}
+
+// libs
+
+.lightbox-container {
+    position: relative;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 40px;
+
+    @screen 4xl {
+        margin-left: var(--menu-width);
+    }
+
+    .lightbox-arrow {
+        font-size: 24px;
+        color: var(--label);
+        position: relative;
+        z-index: 100;
+
+        &[disabled] {
+            opacity: 0;
+        }
+    }
+}
+
+.recharts-text.recharts-cartesian-axis-tick-value {
+    font-size: 12px;
+    fill: var(--tick);
+}
+
+.ant-table-placeholder {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 400;
+
+    .ant-table-cell {
+        border: none !important;
+
+        &:hover {
+            background: transparent !important;
+        }
+    }
+}
+
+.MuiPickersPopper-paper {
+    background: var(--widget) !important;
+    box-shadow: 0 4px 30px 0 rgba(24, 18, 15, 0.05) !important;
+    border: 1px solid var(--border);
+    border-radius: 16px !important;
+    color: var(--text) !important;
+
+    * {
+        font-family: 'Manrope', sans-serif !important;
+    }
+
+    .MuiMultiSectionDigitalClock-root,
+    .MuiDivider-root {
+        border-color: var(--border) !important;
+    }
+
+    .Mui-selected {
+        background: var(--turquoise) !important;
+        font-weight: 500;
+        color: #fff !important;
+    }
+
+    .MuiTouchRipple-root {
+        display: none;
+    }
+
+    .MuiMultiSectionDigitalClock-root {
+        .MuiButtonBase-root {
+            border-radius: 4px;
+            transition: all var(--transition);
+
+            &:hover {
+                background: var(--turquoise) !important;
+                color: #fff;
+            }
+        }
+    }
+
+    .MuiDialogActions-root {
+        .MuiButton-root {
+            background: var(--peach);
+            color: #fff;
+            border-radius: 4px;
+            border: 1px solid transparent;
+
+            &:hover {
+                color: var(--peach);
+                border-color: var(--peach);
+                background: transparent;
+            }
+        }
+    }
+
+    .MuiDayCalendar-header {
+        .MuiDayCalendar-weekDayLabel {
+            color: var(--header);
+            font-weight: 600;
+            font-size: 16px !important;
+        }
+    }
+
+    .MuiDayCalendar-monthContainer {
+        .MuiPickersDay-root {
+            font-size: 14px !important;
+            border-radius: 4px;
+            border: 1px solid transparent;
+
+            &:hover, &:focus {
+               border-color: var(--turquoise);
+                background: transparent;
+            }
+
+            &:not(.Mui-selected) {
+                color: var(--text);
+            }
+
+            &.Mui-disabled {
+                opacity: .4;
+                color: var(--label);
+            }
+        }
+    }
+
+    .MuiPickersCalendarHeader-root {
+        .MuiPickersCalendarHeader-labelContainer {
+            color: var(--header);
+            font-weight: 600;
+        }
+
+        .MuiButtonBase-root {
+            color: var(--label);
+        }
+    }
+
+    .MuiPickersMonth-monthButton {
+        border-radius: 4px;
+        border: 1px solid transparent;
+
+        &:hover, &:focus {
+            border-color: var(--turquoise);
+            background: transparent;
+        }
+    }
+}
+
+.datePicker {
+    * {
+        font-family: 'Manrope', sans-serif !important;
+    }
+
+    .MuiPaper-root {
+        background: var(--widget) !important;
+        box-shadow: 0 4px 30px 0 rgba(24, 18, 15, 0.05) !important;
+        border: 1px solid var(--border);
+        border-radius: 16px !important;
+        min-width: 288px !important;
+        color: var(--text) !important;
+    }
+
+    .MuiTypography-overline {
+        color: var(--label);
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .MuiTouchRipple-root,
+    .MuiTimeClock-arrowSwitcher {
+        display: none;
+    }
+
+    .MuiDateTimePickerToolbar-dateContainer .MuiButtonBase-root span {
+        color: var(--header) !important;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .MuiDateTimePickerToolbar-timeDigitsContainer {
+        align-items: center;
+
+        .MuiButtonBase-root span {
+            color: var(--header) !important;
+            font-size: 20px;
+            font-weight: 700;
+        }
+    }
+
+    .MuiDateTimePickerToolbar-separator {
+        color: var(--header) !important;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 1;
+        margin: 0;
+    }
+
+    .MuiDateTimePickerToolbar-ampmSelection .MuiButtonBase-root span {
+        color: var(--header) !important;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .MuiPickersLayout-root {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .MuiPickersLayout-contentWrapper,
+    .MuiPickersToolbar-root {
+        grid-column: unset !important;
+    }
+
+    .MuiDateCalendar-root,
+    .MuiTimeClock-root,
+    .MuiMonthCalendar-root {
+        width: 100% !important;
+    }
+
+    .MuiPickersMonth-monthButton {
+        border-radius: 4px;
+
+        &:hover, &:focus {
+            border-color: var(--turquoise);
+            background: transparent;
+        }
+
+        &.Mui-selected {
+            background: var(--turquoise) !important;
+            color: #fff !important;
+        }
+    }
+
+    .MuiTabs-root {
+        box-shadow: none;
+        border-bottom: 1px solid var(--border);
+
+        .MuiTab-root {
+            color: var(--label);
+
+            &.Mui-selected {
+                color: var(--turquoise);
+            }
+        }
+
+        .MuiTabs-indicator {
+            background: var(--turquoise);
+        }
+    }
+
+    .MuiDayCalendar-weekDayLabel {
+        font-weight: 500;
+        color: var(--header);
+    }
+
+    .MuiPickersDay-root {
+        color: var(--text);
+        border-radius: 4px;
+        border: 1px solid transparent;
+
+        &.MuiPickersDay-today,
+        &:hover, &:focus {
+            border-color: var(--turquoise);
+            background: transparent;
+        }
+
+        &.Mui-selected {
+            background: var(--turquoise) !important;
+            color: #fff !important;
+        }
+
+        &.Mui-disabled {
+            opacity: .4;
+            color: var(--label) !important;
+        }
+    }
+
+    .MuiPickersCalendarHeader-labelContainer {
+        pointer-events: none;
+        button {
+            display: none;
+        }
+    }
+
+    .MuiPickersArrowSwitcher-root .MuiButtonBase-root {
+        color: var(--label);
+        background: transparent;
+    }
+
+    .MuiDialogActions-root .MuiButton-root {
+        color: #fff;
+        border-radius: 4px;
+        padding: 6px 15px;
+
+        &:first-of-type {
+            background: var(--red);
+        }
+
+        &:last-of-type {
+            background: var(--turquoise);
+        }
+    }
+
+    .MuiClock-clock {
+        background: var(--border);
+
+        .MuiClockNumber-root {
+            color: var(--text);
+
+            &.Mui-selected {
+                color: #fff;
+                background: var(--turquoise);
+            }
+        }
+    }
+
+    .MuiClock-pin,
+    .MuiClockPointer-root {
+        background: var(--turquoise);
+    }
+}
+
+// hide number input arrows
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+// iOS fix
+input[type="search"] {
+    -webkit-appearance: none;
+}

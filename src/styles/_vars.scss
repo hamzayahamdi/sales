@@ -1,0 +1,28 @@
+// template variables
+
+:root {
+    --body-light: #f4f3ee;
+    --body-dark: #0B0905;
+    --widget-light: #FFFFFF;
+    --widget-dark: #1D1D1D;
+    --header-light: #18120F;
+    --header-dark: #FAFAFA;
+    --text-light: #0B0905;
+    --text-dark: #EBF0ED;
+    --label-light: #6B6B6B;
+    --label-dark: #B8B8B8;
+    --border-light: #EBF0ED;
+    --border-dark: #373737;
+    --sidebar-light: #036666;
+    --sidebar-dark: #1B3838;
+    --heatmap-max-dark: #216161;
+    --yellow: #FEC600;
+    --peach: #FF8548;
+    --turquoise: #15CAB8;
+    --blue: #44A6E9;
+    --red: #E2362F;
+    --linear-green-light: linear-gradient(136deg, rgba(255, 255, 255, 0.00) 0%, rgba(29, 139, 139, 0.93) 52.47%, rgba(255, 255, 255, 0.11) 100%);
+    --linear-green-dark: linear-gradient(136deg, rgba(125, 125, 125, 0.00) 0%, rgba(29, 139, 139, 0.54) 52.47%, rgba(255, 255, 255, 0.11) 100%);
+    --transition: .3s ease-in-out;
+    --menu-width: 296px;
+}

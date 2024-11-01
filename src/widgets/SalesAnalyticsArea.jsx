@@ -1,0 +1,355 @@
+// React and hooks
+import { useState, useEffect } from 'react';
+import { useWindowSize } from 'react-use';
+
+// Components
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { FormControl, Select, MenuItem } from '@mui/material';
+
+// Date handling
+import dayjs from 'dayjs';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import weekday from 'dayjs/plugin/weekday';
+
+// Register the plugin
+dayjs.extend(isSameOrBefore);
+dayjs.extend(weekday);
+
+// Constants
+const PERIODS = [
+    { value: 'jours', label: 'Jours' },
+    { value: 'semaines', label: 'Semaines' },
+    { value: 'mois', label: 'Mois' }
+];
+
+const formatValue = (value) => {
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+const getWeekDates = (weekNumber) => {
+    const year = dayjs().year();
+    const startOfWeek = dayjs().year(year).week(weekNumber)
+        .weekday(1); // Monday
+    const endOfWeek = dayjs().year(year).week(weekNumber)
+        .weekday(7); // Sunday
+
+    return {
+        start: startOfWeek.format('DD/MM'),
+        end: endOfWeek.format('DD/MM')
+    };
+};
+
+const SalesAnalyticsArea = ({ storeId = 'all' }) => {
+    const { width } = useWindowSize();
+    const [period, setPeriod] = useState(PERIODS[0]);
+    const [salesData, setSalesData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const getDateRange = (period) => {
+        const today = dayjs();
+        const currentYear = today.year();
+        
+        switch(period.value) {
+            case 'jours':
+                // Last 28 days
+                return `${today.subtract(27, 'days').format('DD/MM/YYYY')} - ${today.format('DD/MM/YYYY')}`;
+            case 'semaines':
+                // From start of year to today
+                return `01/01/${currentYear} - ${today.format('DD/MM/YYYY')}`;
+            case 'mois':
+                // Full current year
+                return `01/01/${currentYear} - 31/12/${currentYear}`;
+            default:
+                return `${today.subtract(27, 'days').format('DD/MM/YYYY')} - ${today.format('DD/MM/YYYY')}`;
+        }
+    };
+
+    const formatDate = (date, periodType) => {
+        switch(periodType) {
+            case 'mois':
+                // Convert to abbreviated month name (e.g., "Jan", "Fév", etc.)
+                const monthNames = [
+                    'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
+                    'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'
+                ];
+                const [month] = date.split('/');
+                return monthNames[parseInt(month) - 1];
+            case 'semaines':
+                // Format as "S1", "S2", etc.
+                const weekNumber = date.split('/')[0];
+                return `S${weekNumber.padStart(2, '0')}`;
+            default:
+                // Format as "DD/MM"
+                return date;
+        }
+    };
+
+    const sortData = (data, periodType) => {
+        return data.sort((a, b) => {
+            if (periodType === 'mois') {
+                // Create a month order map starting from January
+                const monthOrder = {
+                    'Jan': 0,
+                    'Fév': 1,
+                    'Mar': 2,
+                    'Avr': 3,
+                    'Mai': 4,
+                    'Juin': 5,
+                    'Juil': 6,
+                    'Août': 7,
+                    'Sep': 8,
+                    'Oct': 9,
+                    'Nov': 10,
+                    'Déc': 11
+                };
+                return monthOrder[a.date] - monthOrder[b.date];
+            } else if (periodType === 'semaines') {
+                // Sort by week number
+                const weekA = parseInt(a.date.substring(1));
+                const weekB = parseInt(b.date.substring(1));
+                return weekA - weekB;
+            }
+            // Sort by date for daily view
+            return dayjs(a.date, 'DD/MM').valueOf() - dayjs(b.date, 'DD/MM').valueOf();
+        });
+    };
+
+    const fetchData = async () => {
+        setIsLoading(true);
+        try {
+            const dateRange = getDateRange(period);
+            const formData = new FormData();
+            formData.append('date_range', dateRange);
+            formData.append('store_id', storeId);
+            formData.append('fetch_daily', 'true');
+            formData.append('daily_only', 'true');
+            formData.append('period', period.value);
+
+            const response = await fetch('https://sales.sketchdesign.ma/fetch_sales_new.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            
+            if (data.daily_data) {
+                let formattedData;
+                if (period.value === 'mois') {
+                    // Create array with all months of the year
+                    const monthNames = [
+                        'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
+                        'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'
+                    ];
+                    
+                    // Initialize all months with 0
+                    const monthlyData = monthNames.reduce((acc, month) => {
+                        acc[month] = 0;
+                        return acc;
+                    }, {});
+
+                    // Fill in actual data
+                    Object.entries(data.daily_data).forEach(([date, value]) => {
+                        const monthIndex = parseInt(date.split('/')[1]) - 1; // Get month index (0-11)
+                        const monthKey = monthNames[monthIndex];
+                        monthlyData[monthKey] += parseInt(value.replace(/\s/g, '').replace(',', '.')) || 0;
+                    });
+
+                    // Convert to array format
+                    formattedData = monthNames.map(month => ({
+                        date: month,
+                        value: monthlyData[month]
+                    }));
+                } else if (period.value === 'semaines') {
+                    // Group by week
+                    const weeklyData = {};
+                    Object.entries(data.daily_data).forEach(([date, value]) => {
+                        const dateObj = dayjs(date.split('/').reverse().join('-'));
+                        const weekNumber = dateObj.week();
+                        if (!weeklyData[weekNumber]) {
+                            weeklyData[weekNumber] = 0;
+                        }
+                        weeklyData[weekNumber] += parseInt(value.replace(/\s/g, '').replace(',', '.')) || 0;
+                    });
+                    formattedData = Object.entries(weeklyData).map(([weekNum, value]) => ({
+                        date: `S${weekNum.padStart(2, '0')}`,
+                        value: value
+                    }));
+                } else {
+                    // Daily data
+                    formattedData = Object.entries(data.daily_data).map(([date, value]) => ({
+                        date: formatDate(date, period.value),
+                        value: parseInt(value.replace(/\s/g, '').replace(',', '.')) || 0
+                    }));
+                }
+
+                // Sort the data
+                const sortedData = sortData(formattedData, period.value);
+                setSalesData(sortedData);
+            } else {
+                setSalesData([]);
+            }
+        } catch (error) {
+            console.error('Failed to fetch sales analytics:', error);
+            setSalesData([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [storeId, period.value]);
+
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            let displayLabel = label;
+            if (period?.value === 'semaines') {
+                const weekNum = parseInt(label.substring(1));
+                const { start, end } = getWeekDates(weekNum);
+                displayLabel = `${label} (${start} → ${end})`;
+            }
+
+            return (
+                <div className="bg-[#1F2937] p-3 shadow-lg rounded-lg border border-[#374151]">
+                    <p className="text-sm text-gray-300">{displayLabel}</p>
+                    <p className="text-lg font-bold text-white">
+                        {new Intl.NumberFormat('en-US').format(payload[0].value)} DH
+                    </p>
+                </div>
+            );
+        }
+        return null;
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-[#1F2937] shadow-lg rounded-xl">
+                <h2 className="text-xl font-semibold mb-4 text-gray-300">Chiffre d'affaires</h2>
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="animate-pulse space-y-4 w-full">
+                        <div className="h-10 bg-[#111827] rounded w-full"></div>
+                        <div className="h-10 bg-[#111827] rounded w-full"></div>
+                        <div className="h-10 bg-[#111827] rounded w-full"></div>
+                        <div className="h-10 bg-[#111827] rounded w-full"></div>
+                        <div className="h-10 bg-[#111827] rounded w-full"></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col gap-[22px] h-[392px] xs:h-[315px] p-4 xs:p-5 md:h-full bg-[#1F2937] shadow-lg rounded-xl">
+            <div className="flex flex-col gap-2.5 xs:flex-row xs:items-center xs:justify-between xs:gap-5">
+                <h2 className="text-gray-300">Chiffre d'affaires</h2>
+                <div className="min-w-[150px]">
+                    <FormControl fullWidth size="small">
+                        <Select
+                            value={period.value}
+                            onChange={(e) => setPeriod(PERIODS.find(p => p.value === e.target.value))}
+                            sx={{
+                                backgroundColor: '#111827',
+                                color: '#E5E7EB',
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#374151',
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#4B5563',
+                                },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#60A5FA',
+                                },
+                                '& .MuiSvgIcon-root': {
+                                    color: '#9CA3AF',
+                                }
+                            }}
+                            MenuProps={{
+                                PaperProps: {
+                                    sx: {
+                                        backgroundColor: '#111827',
+                                        border: '1px solid #374151',
+                                        '& .MuiMenuItem-root': {
+                                            color: '#E5E7EB',
+                                            '&:hover': {
+                                                backgroundColor: '#1F2937',
+                                            },
+                                            '&.Mui-selected': {
+                                                backgroundColor: '#374151',
+                                            }
+                                        }
+                                    }
+                                }
+                            }}
+                        >
+                            {PERIODS.map((option) => (
+                                <MenuItem 
+                                    key={option.value} 
+                                    value={option.value}
+                                >
+                                    {option.label}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </div>
+            </div>
+            <div className="flex-1 overflow-hidden -ml-2 xs:ml-0">
+                <ResponsiveContainer width="99%" height="100%">
+                    <BarChart 
+                        data={salesData} 
+                        margin={{ 
+                            top: 10, 
+                            right: 10, 
+                            left: width < 768 ? 0 : 10,
+                            bottom: 0 
+                        }}
+                        barSize={width < 768 ? 20 : 30}
+                    >
+                        <defs>
+                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#60A5FA" stopOpacity={1}/>
+                                <stop offset="100%" stopColor="#60A5FA" stopOpacity={0.6}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid 
+                            strokeDasharray="3 3" 
+                            vertical={false}
+                            stroke="#374151"
+                        />
+                        <XAxis 
+                            dataKey="date" 
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                            dy={10}
+                        />
+                        <YAxis 
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                            tickFormatter={(value) => new Intl.NumberFormat('fr-FR', {
+                                notation: 'compact',
+                                compactDisplay: 'short'
+                            }).format(value)}
+                            dx={-10}
+                        />
+                        <Tooltip 
+                            content={<CustomTooltip />}
+                            cursor={{ fill: 'rgba(96, 165, 250, 0.1)' }}
+                        />
+                        <Bar
+                            dataKey="value"
+                            fill="url(#colorValue)"
+                            radius={[4, 4, 0, 0]}
+                            animationBegin={0}
+                            animationDuration={1500}
+                            animationEasing="ease-out"
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+    );
+};
+
+export default SalesAnalyticsArea;

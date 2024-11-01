@@ -1,0 +1,101 @@
+{
+  "name": "comvi",
+  "version": "1.0.0",
+  "private": true,
+  "author": "merkulove <hello@merkulov.design> (https://1.envato.market/tf-merkulove)",
+  "contributors": [
+    {
+      "name": "Lilit L.",
+      "email": "lilit@merkulov.design"
+    }
+  ],
+  "copyright": "Merkulove ( https://merkulov.design/ ). All rights reserved.",
+  "support": "help@merkulov.design",
+  "license": "Envato License https://1.envato.market/KYbje",
+  "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@loadable/component": "^5.15.3",
+    "@mui/base": "^5.0.0-alpha.114",
+    "@mui/material": "^5.16.7",
+    "@mui/styled-engine-sc": "^5.11.0",
+    "@mui/x-date-pickers": "^6.11.2",
+    "@mui/x-date-pickers-pro": "^7.22.0",
+    "@react-spring/web": "^9.6.1",
+    "@vitejs/plugin-react": "^4.0.3",
+    "antd": "^5.7.3",
+    "apexcharts": "^3.41.0",
+    "classnames": "^2.3.2",
+    "dayjs": "^1.11.13",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-apexcharts": "^1.4.1",
+    "react-big-calendar": "^1.8.1",
+    "react-calendar": "^4.6.0",
+    "react-countup": "^6.4.2",
+    "react-datetime-picker": "^5.5.1",
+    "react-dom": "^18.2.0",
+    "react-dropzone": "^14.2.3",
+    "react-ga4": "^2.1.0",
+    "react-grid-layout": "^1.3.4",
+    "react-headroom": "^3.2.1",
+    "react-helmet": "^6.1.0",
+    "react-hook-form": "^7.45.2",
+    "react-icons": "^5.3.0",
+    "react-intersection-observer": "^9.5.2",
+    "react-lazy-load-image-component": "^1.5.6",
+    "react-number-format": "^5.2.2",
+    "react-qr-code": "^2.0.11",
+    "react-router-dom": "^6.6.2",
+    "react-select": "^5.7.0",
+    "react-sizeme": "^3.0.2",
+    "react-spring-lightbox": "^1.7.1",
+    "react-toastify": "^9.1.1",
+    "react-use": "^17.4.0",
+    "react-use-measure": "^2.1.1",
+    "react-visibility-sensor": "^5.1.1",
+    "reactjs-social-login": "^2.6.2",
+    "recharts": "^2.4.3",
+    "redaxios": "^0.5.1",
+    "sass": "^1.57.1",
+    "styled-components": "^5.3.6",
+    "styled-theming": "^2.2.0",
+    "swiper": "^8.4.6",
+    "tailwindcss": "^3.3.2",
+    "vite": "^4.4.3",
+    "vite-plugin-babel-macros": "^1.0.6",
+    "vite-plugin-svgr": "^3.2.0"
+  },
+  "scripts": {
+    "start": "vite --host",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@faker-js/faker": "^8.0.2",
+    "autoprefixer": "^10.4.14",
+    "eslint": "^8.44.0",
+    "eslint-config-react-app": "^7.0.1",
+    "postcss": "^8.4.25",
+    "vite-plugin-eslint": "^1.8.1"
+  }
+}

@@ -1,0 +1,333 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "vars";
+@import "typo";
+@import "global";
+@import "elements";
+
+@import 'react-big-calendar/lib/sass/styles';
+
+// Add these styles for dark tables
+.bestsellers-table.dark,
+.leaderboard-table.dark {
+    background: transparent;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+
+    // Add wrapper styles
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: #111827; // Changed to a slightly darker color
+        border-radius: 12px;
+        box-shadow: 
+            0 4px 25px 0 rgba(0,0,0,0.3),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+        z-index: -1;
+    }
+
+    .ant-table {
+        background-color: transparent;
+        border: none !important;
+        
+        .ant-table-container {
+            background-color: #111827;
+            border: none !important;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 25px 0 rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .ant-table-thead > tr > th {
+            background-color: #1F2937; // Changed header color
+            color: #E5E7EB;
+            border: none !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 16px;
+            position: relative;
+            z-index: 3;
+            
+            &::before {
+                display: none !important;
+            }
+
+            &:first-child {
+                padding-left: 24px;
+            }
+
+            &:last-child {
+                padding-right: 24px;
+            }
+        }
+        
+        .ant-table-tbody > tr > td {
+            background-color: #111827; // Match wrapper background
+            color: #E5E7EB;
+            border: none !important;
+            padding: 16px;
+            transition: all 0.2s ease;
+
+            &:first-child {
+                padding-left: 24px;
+            }
+
+            &:last-child {
+                padding-right: 24px;
+            }
+        }
+
+        .ant-table-tbody > tr {
+            transition: all 0.2s ease;
+            
+            &:hover > td {
+                background-color: #1F2937 !important;
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            }
+
+            // Add subtle shadow between rows
+            &:not(:last-child) > td {
+                box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        .ant-table-cell {
+            border: none !important;
+        }
+
+        .text-gray-500 {
+            color: #9CA3AF;
+        }
+
+        .font-medium {
+            color: #E5E7EB;
+        }
+
+        // Scrollbar styles
+        .ant-table-body::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .ant-table-body::-webkit-scrollbar-track {
+            background: #374151;
+            border-radius: 4px;
+        }
+
+        .ant-table-body::-webkit-scrollbar-thumb {
+            background: #4B5563;
+            border-radius: 4px;
+        }
+
+        .ant-table-body::-webkit-scrollbar-thumb:hover {
+            background: #6B7280;
+        }
+
+        .ant-table-body {
+            // Adjust height to show last item completely
+            max-height: calc(100% - 10px) !important; // Added important to override inline styles
+        }
+
+        &.ant-table-small .ant-table-body {
+            height: 260px !important;
+            max-height: 260px !important;
+        }
+    }
+
+    // Rank circle in leaderboard
+    .rounded-full.bg-gray-100 {
+        background-color: #2d3949;
+        color: #E5E7EB;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    // Add shadow to table wrapper
+    .ant-table-wrapper {
+        box-shadow: 
+            0 8px 30px rgba(0, 0, 0, 0.25),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+}
+
+// Add shadow utilities
+.shadow-card {
+    box-shadow: 0 4px 25px 0 rgba(0,0,0,0.3);
+}
+
+.shadow-inner {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+// Update grid and spacing
+.space-y-8 {
+    & > .grid {
+        background: #111827;
+        border-radius: 12px;
+        box-shadow: 0 4px 25px 0 rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+}
+
+// Add Select component dark theme styles
+.iiCvDZ .select__control {
+    background-color: #111827 !important;
+    border-color: #374151 !important;
+    box-shadow: none !important;
+
+    &:hover {
+        border-color: #4B5563 !important;
+    }
+
+    .select__single-value {
+        color: #E5E7EB !important;
+        padding: 0 !important;
+    }
+
+    .select__input {
+        color: #E5E7EB !important;
+        padding: 0 !important;
+    }
+
+    .select__placeholder {
+        color: #9CA3AF !important;
+        padding: 0 !important;
+    }
+
+    .select__indicator {
+        color: #6B7280 !important;
+        padding: 0 8px !important;
+
+        &:hover {
+            color: #9CA3AF !important;
+        }
+    }
+}
+
+.iiCvDZ .select__menu {
+    background-color: #111827 !important;
+    border: 1px solid #374151 !important;
+    box-shadow: 0 4px 25px 0 rgba(0,0,0,0.3) !important;
+
+    .select__menu-list {
+        padding: 4px !important;
+
+        .select__option {
+            background-color: transparent !important;
+            color: #E5E7EB !important;
+            border-radius: 4px !important;
+            padding: 8px 12px !important;
+            
+            &:hover {
+                background-color: #374151 !important;
+            }
+
+            &.select__option--is-selected {
+                background-color: transparent !important;
+                color: #E5E7EB !important;
+            }
+        }
+    }
+}
+
+/* Counter text color fix */
+.m-auto.justify-center .counter,
+.text-center.m-auto.justify-center .counter {
+    color: #ffffff !important;
+}
+
+/* Layout and spacing adjustments */
+.app .flex-col .space-y-8 {
+    padding-top: 0px;
+    margin-top: 55px;
+}
+
+/* Header and navigation styles */
+.min-h-screen .mx-auto .justify-between {
+    background-color: #111827;
+}
+
+.min-h-screen .mx-auto {
+    box-shadow: 0px 4px 25px 0px rgba(0,0,0,0.36);
+}
+
+/* Tabs styling */
+.MuiTabs-root .MuiTabs-flexContainer {
+    background-color: #111827;
+}
+
+.px-0 .relative .w-full {
+    background-color: #5a9bed;
+}
+
+/* Grid adjustments */
+.min-h-screen .space-y-8 .grid {
+    box-shadow: none;
+    background: transparent;
+}
+
+@media (max-width:767px) {
+    /* Division */
+    .px-0 .relative .css-1uiuibc-MuiToggleButtonGroup-root,
+    .px-0 .relative .MuiToggleButtonGroup-root {
+        height: 43px;
+    }
+}
+
+/* Date picker styling */
+.MuiBox-root .MuiTextField-root .MuiInputBase-adornedEnd {
+    background-color: #5a9bed;
+}
+
+/* Mobile store selector styles */
+.h-safe-area {
+    height: env(safe-area-inset-bottom, 0px);
+}
+
+/* Adjust main content padding for mobile */
+@media (max-width: 767px) {
+    .app .flex-col .space-y-8 {
+        padding-bottom: calc(76px + env(safe-area-inset-bottom, 20px));
+    }
+}
+
+/* Mobile floating navigation */
+@media (max-width: 767px) {
+    .app .flex-col .space-y-8 {
+        padding-bottom: 100px;
+    }
+
+    /* Floating store selector */
+    .fixed.bottom-8 {
+        filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
+        
+        button {
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            &:active {
+                transform: scale(0.95);
+            }
+            
+            &.bg-blue {
+                animation: expandWidth 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+        }
+    }
+}
+
+@keyframes expandWidth {
+    from {
+        width: 45px;
+    }
+    to {
+        width: 90px;
+    }
+}

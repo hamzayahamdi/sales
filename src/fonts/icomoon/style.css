@@ -1,0 +1,343 @@
+@font-face {
+    font-family: 'icomoon';
+    src: url('../../fonts/icomoon/icomoon.woff') format('woff'),
+    url('../../fonts/icomoon/icomoon.svg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'icomoon' !important;
+    speak: never;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-filters-solid:before {
+    content: "\e94f";
+}
+
+.icon-plus-solid:before {
+    content: "\e94d";
+}
+
+.icon-minus-solid:before {
+    content: "\e94e";
+}
+
+.icon-arrow-down-to-line-regular:before {
+    content: "\e94c";
+}
+
+.icon-bars-regular:before {
+    content: "\e94b";
+}
+
+.icon-check-regular:before {
+    content: "\e949";
+}
+
+.icon-floppy-disk-regular:before {
+    content: "\e94a";
+}
+
+.icon-arrow-right-from-bracket-solid:before {
+    content: "\e948";
+}
+
+.icon-arrow-right-from-bracket-regular:before {
+    content: "\e900";
+}
+
+.icon-gear-solid:before {
+    content: "\e901";
+}
+
+.icon-gear-regular:before {
+    content: "\e902";
+}
+
+.icon-message-quote-solid:before {
+    content: "\e903";
+}
+
+.icon-message-quote-regular:before {
+    content: "\e904";
+}
+
+.icon-layer-group-solid:before {
+    content: "\e905";
+}
+
+.icon-layer-group-regular:before {
+    content: "\e906";
+}
+
+.icon-badge-percent-solid:before {
+    content: "\e907";
+}
+
+.icon-badge-percent-regular:before {
+    content: "\e908";
+}
+
+.icon-square-list-solid:before {
+    content: "\e909";
+}
+
+.icon-bag-shopping-regular:before {
+    content: "\e90a";
+}
+
+.icon-objects-column-solid:before {
+    content: "\e90b";
+}
+
+.icon-objects-column-regular:before {
+    content: "\e90c";
+}
+
+.icon-eye-slash-regular:before {
+    content: "\e90d";
+}
+
+.icon-eye-regular:before {
+    content: "\e90e";
+}
+
+.icon-camera-solid:before {
+    content: "\e90f";
+}
+
+.icon-mobile-regular:before {
+    content: "\e910";
+}
+
+.icon-tablet-regular:before {
+    content: "\e911";
+}
+
+.icon-desktop-regular:before {
+    content: "\e912";
+}
+
+.icon-hand-holding-box-solid:before {
+    content: "\e913";
+}
+
+.icon-hand-holding-box-regular:before {
+    content: "\e914";
+}
+
+.icon-route-solid:before {
+    content: "\e915";
+}
+
+.icon-route-regular:before {
+    content: "\e916";
+}
+
+.icon-truck-fast-solid:before {
+    content: "\e917";
+}
+
+.icon-truck-fast-regular:before {
+    content: "\e918";
+}
+
+.icon-bags-shopping-solid:before {
+    content: "\e919";
+}
+
+.icon-box-open-full-solid:before {
+    content: "\e91a";
+}
+
+.icon-box-open-full-regular:before {
+    content: "\e91b";
+}
+
+.icon-square-fragile-regular:before {
+    content: "\e91c";
+}
+
+.icon-ban-regular:before {
+    content: "\e91d";
+}
+
+.icon-arrow-right-arrow-left-regular:before {
+    content: "\e91e";
+}
+
+.icon-cart-circle-xmark-regular:before {
+    content: "\e91f";
+}
+
+.icon-bars-progress-regular:before {
+    content: "\e920";
+}
+
+.icon-box-check-regular:before {
+    content: "\e921";
+}
+
+.icon-loader-regular:before {
+    content: "\e922";
+}
+
+.icon-square-list-regular:before {
+    content: "\e923";
+}
+
+.icon-cloud-arrow-up-light:before {
+    content: "\e924";
+}
+
+.icon-calendar-regular:before {
+    content: "\e925";
+}
+
+.icon-wallet-regular:before {
+    content: "\e926";
+}
+
+.icon-shop-regular:before {
+    content: "\e927";
+}
+
+.icon-bags-shopping-regular:before {
+    content: "\e928";
+}
+
+.icon-money-check-dollar-regular:before {
+    content: "\e929";
+}
+
+.icon-pen-to-square-regular:before {
+    content: "\e92a";
+}
+
+.icon-filters-regular:before {
+    content: "\e92b";
+}
+
+.icon-list-solid:before {
+    content: "\e92c";
+}
+
+.icon-list-regular:before {
+    content: "\e92d";
+}
+
+.icon-grid-2-solid:before {
+    content: "\e92e";
+}
+
+.icon-grid-2-regular:before {
+    content: "\e92f";
+}
+
+.icon-xmark-regular:before {
+    content: "\e930";
+}
+
+.icon-caret-left-solid:before {
+    content: "\e931";
+}
+
+.icon-caret-right-solid:before {
+    content: "\e932";
+}
+
+.icon-caret-down-solid:before {
+    content: "\e933";
+}
+
+.icon-caret-up-solid:before {
+    content: "\e934";
+}
+
+.icon-ellipsis-vertical-regular:before {
+    content: "\e935";
+}
+
+.icon-star-solid:before {
+    content: "\e936";
+}
+
+.icon-star-regular:before {
+    content: "\e937";
+}
+
+.icon-cart-shopping-regular:before {
+    content: "\e938";
+}
+
+.icon-moon-regular:before {
+    content: "\e939";
+}
+
+.icon-moon-stars-regular:before {
+    content: "\e93a";
+}
+
+.icon-sun-bright-regular:before {
+    content: "\e93b";
+}
+
+.icon-bell-regular:before {
+    content: "\e93c";
+}
+
+.icon-magnifying-glass-regular:before {
+    content: "\e93d";
+}
+
+.icon-bag-shopping-solid:before {
+    content: "\e93e";
+}
+
+.icon-arrow-down-to-line-solid:before {
+    content: "\e93f";
+}
+
+.icon-user-plus-solid:before {
+    content: "\e940";
+}
+
+.icon-wallet-solid:before {
+    content: "\e941";
+}
+
+.icon-chevron-left-regular:before {
+    content: "\e942";
+}
+
+.icon-chevron-right-regular:before {
+    content: "\e943";
+}
+
+.icon-chevron-down-regular:before {
+    content: "\e944";
+}
+
+.icon-chevron-up-regular:before {
+    content: "\e945";
+}
+
+.icon-arrow-trend-down-regular:before {
+    content: "\e946";
+}
+
+.icon-arrow-trend-up-regular:before {
+    content: "\e947";
+}
