@@ -198,58 +198,26 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
     const paymentStats = allStats.filter(stat => stat.type === 'payment');
 
     return (
-        <div className="flex flex-col">
-            {/* Primary Stats */}
-            <div className="flex flex-row flex-wrap gap-4 justify-start">
-                {primaryStats.map((item, index) => {
-                    let width, bgColor, fontSize, prefixSize;
-                    switch(index) {
-                        case 0:
-                            width = 'w-[250px]';
-                            bgColor = 'bg-[#26364f]';
-                            fontSize = 'text-[32px]';
-                            prefixSize = 'text-[20px]';
-                            break;
-                        case 1:
-                            width = 'w-[250px]';
-                            bgColor = 'bg-[#26364f]';
-                            fontSize = 'text-[32px]';
-                            prefixSize = 'text-[20px]';
-                            break;
-                        case 2:
-                            width = 'w-[250px]';
-                            bgColor = 'bg-[#26364f]';
-                            fontSize = 'text-[32px]';
-                            prefixSize = 'text-[20px]';
-                            break;
-                        default:
-                            width = 'w-full';
-                            bgColor = 'bg-[#1f2937]';
-                            fontSize = 'text-xl';
-                            prefixSize = 'text-sm';
-                    }
-
-                    return (
-                        <div key={index} className={`${width} md:flex-1 sm:w-full xs:w-full h-[132px] flex`}>
-                            <div className="flex-1">
-                                <StatisticsCard 
-                                    data={{
-                                        ...item,
-                                        bgColor,
-                                        iconBgColor: 'bg-[#2e4265]',
-                                        valueClass: fontSize,
-                                        prefixClass: prefixSize
-                                    }}
-                                    chartClass="xl:w-[250px] 3xl:hidden min-[1800px]:block min-[1800px]:w-[110px] 5xl:w-[130px]"
-                                />
-                            </div>
-                        </div>
-                    );
-                })}
+        <div className="space-y-4">
+            {/* Primary Stats - Three main cards in one line on desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {primaryStats.map((item, index) => (
+                    <div key={index} className="w-full">
+                        <StatisticsCard 
+                            data={{
+                                ...item,
+                                bgColor: 'bg-[#26364f]',
+                                iconBgColor: 'bg-[#2e4265]',
+                                valueClass: 'text-[32px]',
+                                prefixClass: 'text-[20px]'
+                            }}
+                        />
+                    </div>
+                ))}
             </div>
 
-            {/* Payment Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            {/* Payment Stats - Remain in their original layout */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {paymentStats.map((item, index) => (
                     <div key={index} className="col-span-1">
                         <StatisticsCard 
@@ -258,7 +226,6 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
                                 bgColor: 'bg-[#1f2937]',
                                 iconBgColor: 'bg-[#2e4265]'
                             }}
-                            chartClass="xl:w-[250px] 3xl:hidden min-[1800px]:block min-[1800px]:w-[110px] 5xl:w-[130px]"
                         />
                     </div>
                 ))}

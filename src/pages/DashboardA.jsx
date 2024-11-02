@@ -27,27 +27,39 @@ const DashboardA = () => {
                 selectedStoreId={selectedStoreId}
                 onStoreChange={setSelectedStoreId}
             />
-            <div className="px-4 space-y-6 pt-[20px] pb-24 w-full max-w-full">
-                <div className="w-full">
-                    <Statistics 
-                        dateRange={dateRange} 
-                        storeId={selectedStoreId} 
-                    />
+            <div className="space-y-6 pt-[20px] pb-24">
+                <div className="relative">
+                    <div className="absolute inset-0 w-screen">
+                        <div className="mx-auto px-4 max-w-[1920px]">
+                            <Statistics 
+                                dateRange={dateRange} 
+                                storeId={selectedStoreId} 
+                            />
+                        </div>
+                    </div>
+                    <div className="invisible">
+                        <Statistics 
+                            dateRange={dateRange} 
+                            storeId={selectedStoreId} 
+                        />
+                    </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <SalesAnalyticsArea storeId={selectedStoreId} />
-                    <SalesByCategory 
-                        storeId={selectedStoreId}
-                        dateRange={dateRange}
-                    />
-                    <TopSelling 
-                        storeId={selectedStoreId}
-                        dateRange={dateRange}
-                    />
-                    <SalesTeamLeaderboard 
-                        storeId={selectedStoreId}
-                        dateRange={dateRange}
-                    />
+                <div className="px-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <SalesAnalyticsArea storeId={selectedStoreId} />
+                        <SalesByCategory 
+                            storeId={selectedStoreId}
+                            dateRange={dateRange}
+                        />
+                        <TopSelling 
+                            storeId={selectedStoreId}
+                            dateRange={dateRange}
+                        />
+                        <SalesTeamLeaderboard 
+                            storeId={selectedStoreId}
+                            dateRange={dateRange}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

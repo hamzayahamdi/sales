@@ -243,11 +243,11 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                 <p className="flex justify-between font-medium text-[15px] text-gray-300">
                                     <span className="truncate pr-2">{decodeHtmlEntities(item.category)}</span>
                                     <span className="whitespace-nowrap">
-                                        ({((item.value / getTotal()) * 100).toFixed(2)}%) {new Intl.NumberFormat('en-US').format(item.value)} DH
+                                        {new Intl.NumberFormat('en-US').format(item.value)} DH
                                     </span>
                                 </p>
                                 <p className="uppercase text-xs text-gray-400">
-                                    {item.percentage}
+                                    {((item.value / getTotal()) * 100).toFixed(2)}%
                                 </p>
                             </div>
                         </div>

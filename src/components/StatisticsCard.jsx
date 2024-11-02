@@ -2,9 +2,9 @@
 import Counter from '@components/Counter';
 import { IconContext } from 'react-icons';
 
-const StatisticsCard = ({ data, chartClass }) => {
+const StatisticsCard = ({ data }) => {
     return (
-        <div className={`flex flex-col gap-4 p-4 ${data.bgColor} shadow-[0_4px_25px_0_rgba(0,0,0,0.3)] rounded-xl`}>
+        <div className={`flex flex-col gap-4 p-4 ${data.bgColor} shadow-[0_4px_25px_0_rgba(0,0,0,0.3)] rounded-xl w-full`}>
             <div className="flex items-center gap-3">
                 <span className={`flex items-center justify-center w-10 h-10 rounded-lg ${data.iconBgColor} shadow-[0_4px_15px_0_rgba(0,0,0,0.2)]`}>
                     <data.icon className="w-4 h-4 text-[#60A5FA]" />

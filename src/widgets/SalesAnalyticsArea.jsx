@@ -28,15 +28,24 @@ const formatValue = (value) => {
 
 const getWeekDates = (weekNumber) => {
     const year = dayjs().year();
-    const startOfWeek = dayjs().year(year).week(weekNumber)
-        .weekday(1); // Monday
-    const endOfWeek = dayjs().year(year).week(weekNumber)
-        .weekday(7); // Sunday
-
-    return {
+    console.log('Getting week dates:', { weekNumber, year });
+    
+    const startOfWeek = dayjs().year(year).week(weekNumber).weekday(1); // Monday
+    const endOfWeek = dayjs().year(year).week(weekNumber).weekday(7); // Sunday
+    
+    const result = {
         start: startOfWeek.format('DD/MM'),
         end: endOfWeek.format('DD/MM')
     };
+    
+    console.log('Week dates result:', {
+        weekNumber,
+        startOfWeek: startOfWeek.format('YYYY-MM-DD'),
+        endOfWeek: endOfWeek.format('YYYY-MM-DD'),
+        formatted: result
+    });
+    
+    return result;
 };
 
 const SalesAnalyticsArea = ({ storeId = 'all' }) => {
@@ -160,33 +169,76 @@ const SalesAnalyticsArea = ({ storeId = 'all' }) => {
                         value: monthlyData[month]
                     }));
                 } else if (period.value === 'semaines') {
-                    // Group by week with safer date parsing
+                    console.group('Weekly Data Processing');
+                    console.log('Raw data:', data.daily_data);
+                    
+                    // Get current year for date processing
+                    const currentYear = dayjs().year();
+                    
                     const weeklyData = {};
                     Object.entries(data.daily_data).forEach(([date, value]) => {
                         try {
                             // Split the date and create a safe date string
-                            const [day, month, year] = date.split('/');
-                            // Create date using YYYY-MM-DD format which is safer across browsers
-                            const dateObj = dayjs(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+                            const [day, month] = date.split('/');
+                            // Add current year to the date
+                            const dateString = `${currentYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                            
+                            console.log('Processing date:', { 
+                                day, 
+                                month, 
+                                year: currentYear, 
+                                originalDate: date,
+                                constructedDate: dateString 
+                            });
+                            
+                            const dateObj = dayjs(dateString);
+                            
+                            console.log('Date object:', {
+                                dateString,
+                                isValid: dateObj.isValid(),
+                                weekNumber: dateObj.isValid() ? dateObj.week() : 'Invalid',
+                                originalValue: value
+                            });
                             
                             if (dateObj.isValid()) {
                                 const weekNumber = dateObj.week();
                                 if (!weeklyData[weekNumber]) {
                                     weeklyData[weekNumber] = 0;
                                 }
-                                weeklyData[weekNumber] += parseInt(value.replace(/\s/g, '').replace(',', '.')) || 0;
+                                const parsedValue = parseInt(value.replace(/\s/g, '').replace(',', '.')) || 0;
+                                weeklyData[weekNumber] += parsedValue;
+                                
+                                console.log(`Week ${weekNumber}: Added ${parsedValue}, Total: ${weeklyData[weekNumber]}`);
+                            } else {
+                                console.warn('Invalid date:', date, 'Constructed date:', dateString);
                             }
                         } catch (error) {
-                            console.error('Error processing date:', date, error);
+                            console.error('Error processing date:', {
+                                date,
+                                value,
+                                error: error.message,
+                                stack: error.stack
+                            });
                         }
                     });
 
+                    console.log('Weekly data accumulated:', weeklyData);
+
+                    // Sort the weeks in ascending order
                     formattedData = Object.entries(weeklyData)
                         .filter(([weekNum]) => !isNaN(parseInt(weekNum)))
-                        .map(([weekNum, value]) => ({
-                            date: `S${weekNum.toString().padStart(2, '0')}`,
-                            value: value
-                        }));
+                        .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+                        .map(([weekNum, value]) => {
+                            const formatted = {
+                                date: `S${weekNum.toString().padStart(2, '0')}`,
+                                value: value
+                            };
+                            console.log('Formatted week entry:', formatted);
+                            return formatted;
+                        });
+
+                    console.log('Final formatted data:', formattedData);
+                    console.groupEnd();
                 } else {
                     // Daily data
                     formattedData = Object.entries(data.daily_data).map(([date, value]) => ({
