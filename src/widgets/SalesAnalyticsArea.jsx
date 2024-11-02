@@ -160,20 +160,33 @@ const SalesAnalyticsArea = ({ storeId = 'all' }) => {
                         value: monthlyData[month]
                     }));
                 } else if (period.value === 'semaines') {
-                    // Group by week
+                    // Group by week with safer date parsing
                     const weeklyData = {};
                     Object.entries(data.daily_data).forEach(([date, value]) => {
-                        const dateObj = dayjs(date.split('/').reverse().join('-'));
-                        const weekNumber = dateObj.week();
-                        if (!weeklyData[weekNumber]) {
-                            weeklyData[weekNumber] = 0;
+                        try {
+                            // Split the date and create a safe date string
+                            const [day, month, year] = date.split('/');
+                            // Create date using YYYY-MM-DD format which is safer across browsers
+                            const dateObj = dayjs(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+                            
+                            if (dateObj.isValid()) {
+                                const weekNumber = dateObj.week();
+                                if (!weeklyData[weekNumber]) {
+                                    weeklyData[weekNumber] = 0;
+                                }
+                                weeklyData[weekNumber] += parseInt(value.replace(/\s/g, '').replace(',', '.')) || 0;
+                            }
+                        } catch (error) {
+                            console.error('Error processing date:', date, error);
                         }
-                        weeklyData[weekNumber] += parseInt(value.replace(/\s/g, '').replace(',', '.')) || 0;
                     });
-                    formattedData = Object.entries(weeklyData).map(([weekNum, value]) => ({
-                        date: `S${weekNum.padStart(2, '0')}`,
-                        value: value
-                    }));
+
+                    formattedData = Object.entries(weeklyData)
+                        .filter(([weekNum]) => !isNaN(parseInt(weekNum)))
+                        .map(([weekNum, value]) => ({
+                            date: `S${weekNum.toString().padStart(2, '0')}`,
+                            value: value
+                        }));
                 } else {
                     // Daily data
                     formattedData = Object.entries(data.daily_data).map(([date, value]) => ({

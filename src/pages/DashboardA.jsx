@@ -27,11 +27,13 @@ const DashboardA = () => {
                 selectedStoreId={selectedStoreId}
                 onStoreChange={setSelectedStoreId}
             />
-            <div className="px-4 space-y-6 pt-[20px] pb-24">
-                <Statistics 
-                    dateRange={dateRange} 
-                    storeId={selectedStoreId} 
-                />
+            <div className="px-4 space-y-6 pt-[20px] pb-24 w-full max-w-full">
+                <div className="w-full">
+                    <Statistics 
+                        dateRange={dateRange} 
+                        storeId={selectedStoreId} 
+                    />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <SalesAnalyticsArea storeId={selectedStoreId} />
                     <SalesByCategory 

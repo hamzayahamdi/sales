@@ -21,14 +21,14 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop }) => {
                             key={store.value}
                             onClick={() => onStoreChange(store.value)}
                             style={{
-                                minWidth: isSelected ? (isDesktop ? '180px' : '100px') : (isDesktop ? '45px' : '50px'),
+                                minWidth: isSelected ? (isDesktop ? '180px' : '85px') : (isDesktop ? '45px' : '42px'),
                                 backgroundColor: isSelected ? '#5a9bed' : 'transparent',
                                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                 cursor: 'pointer',
                                 height: '36px'
                             }}
                             className={`
-                                relative px-3 rounded-full flex items-center justify-center
+                                relative px-2.5 rounded-full flex items-center justify-center
                                 ${isSelected 
                                     ? 'text-white'
                                     : 'text-gray-400 hover:text-white hover:bg-[#2b3d54]'
