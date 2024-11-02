@@ -2,6 +2,8 @@ import './config/mui';
 // React and Router imports
 import { lazy, Suspense } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // MUI imports
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
@@ -199,7 +201,16 @@ const App = () => {
                             <div className={`flex flex-col col-start-2 flex-1 ${isAuthRoute ? 'max-w-[650px] w-full' : ''}`}>
                                 <Suspense fallback={<Loader />}>
                                     <Routes>
-                                        <Route path="/" element={<DashboardA />} />
+                                        <Route path="/login" element={<Login />} />
+                                        <Route 
+                                            path="/dashboard" 
+                                            element={
+                                                <ProtectedRoute>
+                                                    <DashboardA />
+                                                </ProtectedRoute>
+                                            } 
+                                        />
+                                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                         <Route path="/dashboard-b" element={<DashboardB />} />
                                         <Route path="/dashboard-c" element={<DashboardC />} />
                                         <Route path="/dashboard-d" element={<DashboardD />} />
