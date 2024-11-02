@@ -1,7 +1,8 @@
 import './config/mui';
 // React and Router imports
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -10,7 +11,6 @@ import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers-pro';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LicenseInfo } from '@mui/x-date-pickers-pro';
 
 // Third-party imports
 import ReactGA from 'react-ga4';
@@ -60,7 +60,7 @@ const PageNotFound = lazy(() => import('@pages/PageNotFound'));
 
 const App = () => {
     const isAuthRoute = useAuthRoute();
-    const { theme } = useTheme();
+    const { theme: currentTheme } = useTheme();
 
     // Create MUI theme with dark mode
     const muiTheme = createTheme({
@@ -184,57 +184,67 @@ const App = () => {
     const gaKey = import.meta.env.VITE_GA;
     gaKey && ReactGA.initialize(gaKey);
 
+    useEffect(() => {
+        document.title = "Sales Analytics | Sketch Design";
+    }, []);
+
     return (
-        <MuiThemeProvider theme={muiTheme}>
-            <LocalizationProvider 
-                dateAdapter={AdapterDayjs} 
-                adapterLocale="fr"
-                localeText={{ start: 'Début', end: 'Fin' }}
-            >
-                <ThemeProvider theme={{ theme: 'dark' }}>
-                    <SidebarProvider>
-                        <ThemeStyles />
-                        <ToastContainer theme="dark" autoClose={2000} />
-                        <ScrollToTop />
-                        <div className={`app ${isAuthRoute ? 'fluid' : ''} bg-[#111827]`}>
-                            {!isAuthRoute && <Sidebar />}
-                            <div className={`flex flex-col col-start-2 flex-1 ${isAuthRoute ? 'max-w-[650px] w-full' : ''}`}>
-                                <Suspense fallback={<Loader />}>
-                                    <Routes>
-                                        <Route path="/login" element={<Login />} />
-                                        <Route 
-                                            path="/dashboard" 
-                                            element={
-                                                <ProtectedRoute>
-                                                    <DashboardA />
-                                                </ProtectedRoute>
-                                            } 
-                                        />
-                                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                        <Route path="/dashboard-b" element={<DashboardB />} />
-                                        <Route path="/dashboard-c" element={<DashboardC />} />
-                                        <Route path="/dashboard-d" element={<DashboardD />} />
-                                        <Route path="/products" element={<Products />} />
-                                        <Route path="/product" element={<Product />} />
-                                        <Route path="/create-product" element={<CreateProduct />} />
-                                        <Route path="/orders" element={<Orders />} />
-                                        <Route path="/order-details" element={<OrderDetails />} />
-                                        <Route path="/invoice" element={<Invoice />} />
-                                        <Route path="/sales" element={<Sales />} />
-                                        <Route path="/reviews" element={<Reviews />} />
-                                        <Route path="/settings" element={<Settings />} />
-                                        <Route path="/sign-in" element={<SignIn />} />
-                                        <Route path="/sign-up" element={<SignUp />} />
-                                        <Route path="*" element={<Navigate to="/404" />} />
-                                        <Route path="/404" element={<PageNotFound />} />
-                                    </Routes>
-                                </Suspense>
+        <HelmetProvider>
+            <Helmet>
+                <title>Sales Analytics | Sketch Design</title>
+                <meta name="description" content="Sales Analytics Dashboard by Sketch Design" />
+            </Helmet>
+            <MuiThemeProvider theme={muiTheme}>
+                <LocalizationProvider 
+                    dateAdapter={AdapterDayjs} 
+                    adapterLocale="fr"
+                    localeText={{ start: 'Début', end: 'Fin' }}
+                >
+                    <ThemeProvider theme={{ theme: 'dark' }}>
+                        <SidebarProvider>
+                            <ThemeStyles />
+                            <ToastContainer theme="dark" autoClose={2000} />
+                            <ScrollToTop />
+                            <div className={`app ${isAuthRoute ? 'fluid' : ''} bg-[#111827]`}>
+                                {!isAuthRoute && <Sidebar />}
+                                <div className={`flex flex-col col-start-2 flex-1 ${isAuthRoute ? 'max-w-[650px] w-full' : ''}`}>
+                                    <Suspense fallback={<Loader />}>
+                                        <Routes>
+                                            <Route path="/login" element={<Login />} />
+                                            <Route 
+                                                path="/dashboard" 
+                                                element={
+                                                    <ProtectedRoute>
+                                                        <DashboardA />
+                                                    </ProtectedRoute>
+                                                } 
+                                            />
+                                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                            <Route path="/dashboard-b" element={<DashboardB />} />
+                                            <Route path="/dashboard-c" element={<DashboardC />} />
+                                            <Route path="/dashboard-d" element={<DashboardD />} />
+                                            <Route path="/products" element={<Products />} />
+                                            <Route path="/product" element={<Product />} />
+                                            <Route path="/create-product" element={<CreateProduct />} />
+                                            <Route path="/orders" element={<Orders />} />
+                                            <Route path="/order-details" element={<OrderDetails />} />
+                                            <Route path="/invoice" element={<Invoice />} />
+                                            <Route path="/sales" element={<Sales />} />
+                                            <Route path="/reviews" element={<Reviews />} />
+                                            <Route path="/settings" element={<Settings />} />
+                                            <Route path="/sign-in" element={<SignIn />} />
+                                            <Route path="/sign-up" element={<SignUp />} />
+                                            <Route path="*" element={<Navigate to="/404" />} />
+                                            <Route path="/404" element={<PageNotFound />} />
+                                        </Routes>
+                                    </Suspense>
+                                </div>
                             </div>
-                        </div>
-                    </SidebarProvider>
-                </ThemeProvider>
-            </LocalizationProvider>
-        </MuiThemeProvider>
+                        </SidebarProvider>
+                    </ThemeProvider>
+                </LocalizationProvider>
+            </MuiThemeProvider>
+        </HelmetProvider>
     );
 }
 
