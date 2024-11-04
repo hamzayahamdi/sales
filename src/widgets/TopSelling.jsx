@@ -5,7 +5,9 @@ import TopSellingCollapse from '@components/TopSellingCollapse';
 
 // hooks
 import {useWindowSize} from 'react-use';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
+import { FaSearch, FaFileExport, FaChartLine } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
 
 const TopSelling = ({ storeId = 'all', dateRange }) => {
     const {width} = useWindowSize();
@@ -13,6 +15,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
     const [topProducts, setTopProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [productsStock, setProductsStock] = useState({});
+    const [searchTerm, setSearchTerm] = useState('');
 
     const fetchAllProducts = async (productName) => {
         try {
@@ -145,13 +148,86 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
         }
     };
 
+    const getStockStatus = (stock) => {
+        if (stock > 2) {
+            return (
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm px-4 py-1 rounded-full border border-[#22c55e] text-[#22c55e] bg-[#22c55e]/10">
+                        In Stock
+                    </span>
+                    <span className="text-gray-300 text-sm">
+                        ({stock} pcs)
+                    </span>
+                </div>
+            );
+        } else if (stock === 0) {
+            return (
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm px-4 py-1 rounded-full border border-[#ef4444] text-[#ef4444] bg-[#ef4444]/10">
+                        Out of Stock
+                    </span>
+                </div>
+            );
+        } else {
+            return (
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm px-4 py-1 rounded-full border border-[#f59e0b] text-[#f59e0b] bg-[#f59e0b]/10">
+                        Low Stock
+                    </span>
+                    <span className="text-gray-300 text-sm">
+                        ({stock} pcs)
+                    </span>
+                </div>
+            );
+        }
+    };
+
     const getColumns = () => {
+        // Mobile columns (simplified)
+        if (width < 768) {
+            return [
+                {
+                    title: 'PRODUIT',
+                    dataIndex: 'name',
+                    key: 'name',
+                    width: '50%',
+                    render: (text, record) => (
+                        <div className="flex flex-col py-1">
+                            <span className="font-medium break-words">{text}</span>
+                            <span className="text-xs text-gray-500">Réf: {record.ref}</span>
+                        </div>
+                    )
+                },
+                {
+                    title: 'QTÉ',
+                    dataIndex: 'qty_sold',
+                    key: 'qty_sold',
+                    width: '20%',
+                    render: (value) => (
+                        <span className="font-medium">{value}</span>
+                    )
+                },
+                {
+                    title: 'TOTAL',
+                    dataIndex: 'total',
+                    key: 'total',
+                    width: '30%',
+                    render: (value) => (
+                        <span className="font-medium">
+                            {new Intl.NumberFormat('en-US').format(value)} DH
+                        </span>
+                    )
+                }
+            ];
+        }
+
+        // Desktop columns (full view)
         const baseColumns = [
             {
                 title: 'PRODUIT',
                 dataIndex: 'name',
                 key: 'name',
-                width: '40%',
+                width: '35%',
                 render: (text, record) => (
                     <div className="flex flex-col py-1">
                         <span className="font-medium break-words">{text}</span>
@@ -175,12 +251,8 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                 title: getStockColumnTitle(storeId),
                 dataIndex: 'stock',
                 key: 'stock',
-                width: '20%',
-                render: (_, record) => (
-                    <span className="font-medium">
-                        {record.stock} pcs
-                    </span>
-                )
+                width: '30%',
+                render: (_, record) => getStockStatus(record.stock)
             });
         }
 
@@ -188,7 +260,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
             title: 'TOTAL TTC',
             dataIndex: 'total',
             key: 'total',
-            width: '25%',
+            width: '20%',
             render: (value) => (
                 <span className="font-medium">
                     {new Intl.NumberFormat('en-US').format(value)} DH
@@ -197,6 +269,31 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
         });
 
         return baseColumns;
+    };
+
+    const filteredProducts = useMemo(() => {
+        if (!searchTerm) return topProducts;
+        
+        return topProducts.filter(product => 
+            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.ref.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [topProducts, searchTerm]);
+
+    const exportToExcel = () => {
+        const exportData = topProducts.map(product => ({
+            'Référence': product.ref,
+            'Produit': product.name,
+            'Quantité Vendue': product.qty_sold,
+            'Stock': product.stock,
+            'Total TTC': `${product.total} DH`
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+
+        XLSX.utils.book_append_sheet(wb, ws, "Best Sellers");
+        XLSX.writeFile(wb, `bestsellers_${storeId}_${dateRange}.xlsx`);
     };
 
     if (isLoading) {
@@ -217,36 +314,77 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
     }
 
     return (
-        <div className="flex flex-col h-[400px] p-4 xs:p-5 bg-[#1F2937] shadow-lg rounded-xl">
-            <h2 className="text-lg font-semibold mb-3 text-gray-300">Bestsellers</h2>
-            {width < 768 ? (
-                <div className="flex-1 flex flex-col gap-2 overflow-y-auto">
-                    {topProducts.map((product, index) => (
-                        <div key={`${product.id}-${index}`}>
-                            <TopSellingCollapse 
-                                product={product}
-                                active={activeCollapse}
-                                setActive={setActiveCollapse}
-                                index={index}
-                                showStock={storeId !== '10' && storeId !== 10}
-                            />
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="flex-1 overflow-hidden">
-                    <BasicTable 
-                        dataSource={topProducts}
-                        columns={getColumns()}
-                        rowKey={record => `${record.id}-${record.name}`}
-                        showSorterTooltip={false}
-                        pagination={false}
-                        size="small"
-                        className="bestsellers-table h-full dark"
-                        scroll={{ y: 260 }}
+        <div className="flex flex-col h-full p-4 xs:p-5 bg-[#1F2937] shadow-lg rounded-xl">
+            {/* Title */}
+            <div className="relative mb-4">
+                <div 
+                    className="absolute inset-0 bg-white/5 backdrop-blur-[2px] transform skew-x-[-20deg] rounded 
+                        shadow-[0_8px_32px_rgba(31,41,55,0.5)] 
+                        after:absolute after:inset-0 after:bg-gradient-to-r 
+                        after:from-white/10 after:to-transparent after:rounded
+                        before:absolute before:inset-0 before:bg-blue-500/20 before:blur-[15px] before:rounded"
+                />
+                <h2 className="relative z-10 px-6 py-2.5 flex items-center gap-2 text-xl font-semibold text-white">
+                    <FaChartLine className="text-lg text-blue-400" />
+                    Bestsellers
+                </h2>
+            </div>
+
+            {/* Search and Export */}
+            <div className="flex items-center gap-2 mb-4">
+                <div className="relative flex-1">
+                    <input
+                        type="text"
+                        placeholder="Rechercher..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-[#111827] border-0 rounded-lg text-gray-300 placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                     />
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 </div>
-            )}
+                <button 
+                    onClick={exportToExcel}
+                    className="p-2 bg-[#111827] text-[#60A5FA] hover:text-[#3b82f6] rounded-lg transition-colors shrink-0"
+                >
+                    <FaFileExport size={20} />
+                </button>
+            </div>
+
+            {/* Table */}
+            <div className="flex-1">
+                <BasicTable 
+                    dataSource={filteredProducts}
+                    columns={getColumns()}
+                    rowKey="id"
+                    showSorterTooltip={false}
+                    pagination={false}
+                    size="small"
+                    className="top-selling-table h-full dark"
+                    scroll={{ y: 360 }}
+                    style={{
+                        backgroundColor: '#111827',
+                        borderRadius: '8px',
+                    }}
+                />
+            </div>
+            <style jsx global>{`
+                .top-selling-table .ant-table {
+                    background: #111827 !important;
+                }
+                .top-selling-table .ant-table-thead > tr > th {
+                    background: #111827 !important;
+                    border-bottom: 1px solid #1F2937 !important;
+                }
+                .top-selling-table .ant-table-tbody > tr > td {
+                    border-bottom: 1px solid #1F2937 !important;
+                }
+                .top-selling-table .ant-table-tbody > tr:hover > td {
+                    background: #1F2937 !important;
+                }
+                .top-selling-table .ant-table-tbody > tr.ant-table-row:hover > td {
+                    background: #1F2937 !important;
+                }
+            `}</style>
         </div>
     );
 };

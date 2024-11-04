@@ -15,6 +15,40 @@ const TopSellingCollapse = ({product, active, setActive, index, showStock}) => {
         }
     }
 
+    const getStockStatus = (stock) => {
+        if (stock > 2) {
+            return (
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm px-4 py-1 rounded-full border border-[#22c55e] text-[#22c55e] bg-[#22c55e]/10">
+                        In Stock
+                    </span>
+                    <span className="text-gray-300 text-sm">
+                        ({stock} pcs)
+                    </span>
+                </div>
+            );
+        } else if (stock === 0) {
+            return (
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm px-4 py-1 rounded-full border border-[#ef4444] text-[#ef4444] bg-[#ef4444]/10">
+                        Out of Stock
+                    </span>
+                </div>
+            );
+        } else {
+            return (
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm px-4 py-1 rounded-full border border-[#f59e0b] text-[#f59e0b] bg-[#f59e0b]/10">
+                        Low Stock
+                    </span>
+                    <span className="text-gray-300 text-sm">
+                        ({stock} pcs)
+                    </span>
+                </div>
+            );
+        }
+    };
+
     return (
         <div className="bg-[#111827] p-3 rounded-lg">
             <div className="flex items-center justify-between gap-3">
@@ -45,7 +79,7 @@ const TopSellingCollapse = ({product, active, setActive, index, showStock}) => {
                                 Stock :
                             </span>
                             <span className="text-gray-300 font-semibold text-sm">
-                                {product.stock} pcs
+                                {getStockStatus(product.stock)}
                             </span>
                         </li>
                     )}
@@ -54,7 +88,7 @@ const TopSellingCollapse = ({product, active, setActive, index, showStock}) => {
                             Total :
                         </span>
                         <span className="text-gray-300 font-semibold text-sm">
-                            {new Intl.NumberFormat('fr-FR').format(product.total)} DH
+                            {new Intl.NumberFormat('en-US').format(product.total)} DH
                         </span>
                     </li>
                 </ul>

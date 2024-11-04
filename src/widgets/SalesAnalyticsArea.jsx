@@ -1,6 +1,7 @@
 // React and hooks
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWindowSize } from 'react-use';
+import { FaChartArea } from 'react-icons/fa';
 
 // Components
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -22,37 +23,40 @@ const PERIODS = [
     { value: 'mois', label: 'Mois' }
 ];
 
-const formatValue = (value) => {
-    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-};
-
-const getWeekDates = (weekNumber) => {
-    const year = dayjs().year();
-    console.log('Getting week dates:', { weekNumber, year });
-    
-    const startOfWeek = dayjs().year(year).week(weekNumber).weekday(1); // Monday
-    const endOfWeek = dayjs().year(year).week(weekNumber).weekday(7); // Sunday
-    
-    const result = {
-        start: startOfWeek.format('DD/MM'),
-        end: endOfWeek.format('DD/MM')
-    };
-    
-    console.log('Week dates result:', {
-        weekNumber,
-        startOfWeek: startOfWeek.format('YYYY-MM-DD'),
-        endOfWeek: endOfWeek.format('YYYY-MM-DD'),
-        formatted: result
-    });
-    
-    return result;
-};
-
 const SalesAnalyticsArea = ({ storeId = 'all' }) => {
     const { width } = useWindowSize();
-    const [period, setPeriod] = useState(PERIODS[0]);
     const [salesData, setSalesData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [period, setPeriod] = useState(PERIODS[0]);
+
+    const formatValue = useCallback((value) => {
+        return new Intl.NumberFormat('fr-FR', {
+            notation: 'compact',
+            compactDisplay: 'short'
+        }).format(value);
+    }, []);
+
+    const getWeekDates = (weekNumber) => {
+        const year = dayjs().year();
+        console.log('Getting week dates:', { weekNumber, year });
+        
+        const startOfWeek = dayjs().year(year).week(weekNumber).weekday(1); // Monday
+        const endOfWeek = dayjs().year(year).week(weekNumber).weekday(7); // Sunday
+        
+        const result = {
+            start: startOfWeek.format('DD/MM'),
+            end: endOfWeek.format('DD/MM')
+        };
+        
+        console.log('Week dates result:', {
+            weekNumber,
+            startOfWeek: startOfWeek.format('YYYY-MM-DD'),
+            endOfWeek: endOfWeek.format('YYYY-MM-DD'),
+            formatted: result
+        });
+        
+        return result;
+    };
 
     const getDateRange = (period) => {
         const today = dayjs();
@@ -289,7 +293,7 @@ const SalesAnalyticsArea = ({ storeId = 'all' }) => {
     if (isLoading) {
         return (
             <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-[#1F2937] shadow-lg rounded-xl">
-                <h2 className="text-xl font-semibold mb-4 text-gray-300">Chiffre d'affaires</h2>
+                <h2 className="text-xl font-semibold mb-4 text-gray-300">CA Analytics</h2>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="animate-pulse space-y-4 w-full">
                         <div className="h-10 bg-[#111827] rounded w-full"></div>
@@ -304,15 +308,32 @@ const SalesAnalyticsArea = ({ storeId = 'all' }) => {
     }
 
     return (
-        <div className="flex flex-col gap-[22px] h-[392px] xs:h-[315px] p-4 xs:p-5 md:h-full bg-[#1F2937] shadow-lg rounded-xl">
-            <div className="flex flex-col gap-2.5 xs:flex-row xs:items-center xs:justify-between xs:gap-5">
-                <h2 className="text-gray-300">Chiffre d'affaires</h2>
-                <div className="min-w-[150px]">
+        <div className="flex flex-col h-full p-4 xs:p-5 bg-[#1F2937] shadow-lg rounded-xl">
+            {/* Title and Period Selector */}
+            <div className="flex items-center justify-between mb-4">
+                {/* Title */}
+                <div className="relative">
+                    <div 
+                        className="absolute inset-0 bg-white/5 backdrop-blur-[2px] transform skew-x-[-20deg] rounded 
+                            shadow-[0_8px_32px_rgba(31,41,55,0.5)] 
+                            after:absolute after:inset-0 after:bg-gradient-to-r 
+                            after:from-white/10 after:to-transparent after:rounded
+                            before:absolute before:inset-0 before:bg-blue-500/20 before:blur-[15px] before:rounded"
+                    />
+                    <h2 className="relative z-10 px-6 py-2.5 flex items-center gap-2 text-xl font-semibold text-white">
+                        <FaChartArea className="text-lg text-blue-400" />
+                        CA Analytics
+                    </h2>
+                </div>
+
+                {/* Period Selector */}
+                <div className="min-w-[120px]">
                     <FormControl fullWidth size="small">
                         <Select
                             value={period.value}
                             onChange={(e) => setPeriod(PERIODS.find(p => p.value === e.target.value))}
                             sx={{
+                                height: '36px',
                                 backgroundColor: '#111827',
                                 color: '#E5E7EB',
                                 '& .MuiOutlinedInput-notchedOutline': {
@@ -358,7 +379,9 @@ const SalesAnalyticsArea = ({ storeId = 'all' }) => {
                     </FormControl>
                 </div>
             </div>
-            <div className="flex-1 overflow-hidden -ml-2 xs:ml-0">
+
+            {/* Chart */}
+            <div className="flex-1 min-h-0">
                 <ResponsiveContainer width="99%" height="100%">
                     <BarChart 
                         data={salesData} 

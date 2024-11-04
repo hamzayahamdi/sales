@@ -105,7 +105,9 @@ const AppBar = ({
     dateRange,
     onDateRangeChange,
     selectedStoreId,
-    onStoreChange
+    onStoreChange,
+    storeSales = {},
+    loading = false
 }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -229,6 +231,8 @@ const AppBar = ({
                                     selectedStoreId={selectedStoreId} 
                                     onStoreChange={onStoreChange} 
                                     isDesktop={true}
+                                    storeSales={storeSales}
+                                    loading={loading}
                                 />
                             </div>
                         )}
@@ -300,7 +304,15 @@ const AppBar = ({
             </div>
             <div className="h-[76px]" />
 
-            {isMobile && <MobileNav selectedStoreId={selectedStoreId} onStoreChange={onStoreChange} isDesktop={false} />}
+            {isMobile && (
+                <MobileNav 
+                    selectedStoreId={selectedStoreId} 
+                    onStoreChange={onStoreChange} 
+                    isDesktop={false}
+                    storeSales={storeSales}
+                    loading={loading}
+                />
+            )}
         </>
     );
 };

@@ -2,6 +2,7 @@
 import Spring from '@components/Spring';
 import Select from '@ui/Select';
 import {ResponsiveContainer, Tooltip, Pie, PieChart, Cell} from 'recharts';
+import { FaChartPie } from 'react-icons/fa';
 
 // hooks
 import {useState, useEffect} from 'react';
@@ -187,13 +188,33 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
     }
 
     return (
-        <div className="flex flex-col gap-4 p-5 h-full xs:p-6 bg-[#1F2937] shadow-lg rounded-xl">
-            <div className="flex flex-col gap-2.5 xs:flex-row xs:items-center xs:justify-between">
-                <h2 className="text-gray-300">Chiffre d'affaires par catégorie</h2>
+        <div className="flex flex-col h-full p-5 xs:p-6 bg-[#1F2937] shadow-lg rounded-xl">
+            {/* Title with glassy parallelogram effect */}
+            <div className="relative mb-4">
+                <div 
+                    className="absolute inset-0 bg-white/5 backdrop-blur-[2px] transform skew-x-[-20deg] rounded 
+                        shadow-[0_8px_32px_rgba(31,41,55,0.5)] 
+                        after:absolute after:inset-0 after:bg-gradient-to-r 
+                        after:from-white/10 after:to-transparent after:rounded
+                        before:absolute before:inset-0 before:bg-blue-500/20 before:blur-[15px] before:rounded"
+                />
+                <h2 className="relative z-10 px-6 py-2.5 flex items-center gap-2 text-xl font-semibold text-white">
+                    <FaChartPie className="text-lg text-blue-400" />
+                    CA par catégorie
+                </h2>
             </div>
-            <div className="flex flex-col items-start gap-6 flex-1 md:flex-row md:items-start md:gap-[65px] overflow-hidden">
-                <div className="relative shrink-0 min-h-[240px] min-w-[240px] xs:min-w-[294px]
-                     xs:min-h-[294px] m-auto md:m-0 md:w-[294px] md:h-[294px]">
+            
+            {/* Content with conditional layout */}
+            <div className={`flex flex-col items-start gap-6 flex-1 
+                ${storeId === 'all' ? 'md:flex-row md:items-center' : 'md:flex-row md:items-start'}
+                md:gap-[65px] overflow-hidden`}
+            >
+                {/* Chart Section */}
+                <div className={`relative shrink-0 min-h-[240px] min-w-[240px] 
+                    xs:min-w-[294px] xs:min-h-[294px] m-auto md:m-0 
+                    md:w-[294px] md:h-[294px]
+                    ${storeId === 'all' ? 'md:self-center' : ''}`}
+                >
                     <ResponsiveContainer width="99%" height="99%">
                         <PieChart>
                             <Pie 
@@ -226,29 +247,46 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center m-auto justify-center">
-                            <span className="counter block whitespace-nowrap text-[24px] font-bold text-white">
+                            <span className="counter block whitespace-nowrap text-[32px] font-bold text-white">
                                 {formatLargeNumber(getTotal())}
                             </span>
-                            <span className="block text-[16px] font-medium text-gray-300">DH</span>
+                            <span className="block text-[18px] font-medium text-gray-300">DH</span>
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col flex-1 w-full gap-4 overflow-y-auto max-h-[294px] pr-2">
+
+                {/* Categories List */}
+                <div className={`flex flex-col flex-1 w-full gap-4 overflow-y-auto overscroll-behavior-contain pr-2
+                    ${storeId === 'all' ? 'md:max-h-[500px]' : 'max-h-[294px]'}`}
+                >
                     {categoryData.map((item, index) => (
-                        <div key={index} className="flex gap-2.5">
+                        <div key={index} className="flex gap-3">
                             <span className="flex items-center justify-center w-[30px] h-[30px] rounded-full mt-1 shrink-0 bg-[#374151]">
                                 <span className={`w-[15px] h-[15px] rounded-full bg-${COLORS[index % COLORS.length].color}`}/>
                             </span>
-                            <div className="flex flex-col flex-1 gap-1">
+                            <div className="flex flex-col flex-1 gap-1.5">
                                 <p className="flex justify-between font-medium text-[15px] text-gray-300">
                                     <span className="truncate pr-2">{decodeHtmlEntities(item.category)}</span>
                                     <span className="whitespace-nowrap">
                                         {new Intl.NumberFormat('en-US').format(item.value)} DH
                                     </span>
                                 </p>
-                                <p className="uppercase text-xs text-gray-400">
-                                    {((item.value / getTotal()) * 100).toFixed(2)}%
-                                </p>
+                                <div className="flex items-center justify-between">
+                                    <p className="uppercase text-xs text-gray-400">
+                                        {((item.value / getTotal()) * 100).toFixed(2)}%
+                                    </p>
+                                </div>
+                                {storeId === 'all' && (
+                                    <div className="w-full bg-[#374151] rounded-full h-1.5 mt-1">
+                                        <div 
+                                            className="h-full rounded-full transition-all duration-500"
+                                            style={{
+                                                width: `${(item.value / getTotal()) * 100}%`,
+                                                backgroundColor: `var(--${COLORS[index % COLORS.length].color})`
+                                            }}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}

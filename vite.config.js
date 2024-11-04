@@ -20,14 +20,7 @@ export default defineConfig({
         rollupOptions: {
             treeshake: 'recommended',
             output: {
-                manualChunks(id) {
-                    if (id.includes('node_modules/@mui')) {
-                        return 'mui';
-                    }
-                    if (id.includes('node_modules/recharts')) {
-                        return 'recharts';
-                    }
-                }
+                manualChunks: undefined,
             }
         }
     },
@@ -51,6 +44,7 @@ export default defineConfig({
             '@widgets': '/src/widgets',
             '@contexts': '/src/contexts',
             '@constants': '/src/constants',
+            '@config': path.resolve(__dirname, './src/config'),
         }
     },
     define: {
