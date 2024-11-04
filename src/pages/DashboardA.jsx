@@ -8,6 +8,7 @@ import SalesAnalyticsArea from '@widgets/SalesAnalyticsArea';
 import SalesByCategory from '@widgets/SalesByCategory';
 import TopSelling from '@widgets/TopSelling';
 import SalesTeamLeaderboard from '@widgets/SalesTeamLeaderboard';
+import SalesByStore from '@widgets/SalesByStore';
 
 const DashboardA = () => {
     // Initialize with today's date
@@ -47,10 +48,25 @@ const DashboardA = () => {
                 <div className="px-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <SalesAnalyticsArea storeId={selectedStoreId} />
-                        <SalesByCategory 
-                            storeId={selectedStoreId}
-                            dateRange={dateRange}
-                        />
+                        {selectedStoreId === 'all' ? (
+                            // When "Tous les magasins" is selected, show both charts
+                            <>
+                                <SalesByCategory 
+                                    storeId={selectedStoreId}
+                                    dateRange={dateRange}
+                                />
+                                <SalesByStore 
+                                    storeId={selectedStoreId}
+                                    dateRange={dateRange}
+                                />
+                            </>
+                        ) : (
+                            // For specific store, show only category chart
+                            <SalesByCategory 
+                                storeId={selectedStoreId}
+                                dateRange={dateRange}
+                            />
+                        )}
                         <TopSelling 
                             storeId={selectedStoreId}
                             dateRange={dateRange}
