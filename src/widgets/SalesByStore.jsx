@@ -15,24 +15,27 @@ const formatLargeNumber = (number) => {
     if (typeof number === 'string') {
         number = parseFloat(number.replace(/\s/g, ''));
     }
-    if (number >= 1000000) {
-        return `${(number / 1000000).toFixed(1)}M`;
-    } else if (number >= 1000) {
-        return `${(number / 1000).toFixed(1)}K`;
-    }
-    return number.toString();
+    return new Intl.NumberFormat('fr-FR').format(number);
 };
 
 const CustomTooltip = ({active, payload}) => {
     if (active && payload && payload.length) {
         return (
             <div className="basic-tooltip">
-                {payload[0].value} DH
+                {formatLargeNumber(payload[0].value)} DH
             </div>
         );
     }
     return null;
 }
+
+const STORE_NAMES = {
+    '1': 'Casablanca',
+    '2': 'Rabat',
+    '5': 'Tanger',
+    '6': 'Marrakech',
+    '10': 'Outlet'
+};
 
 const SalesByStore = ({ dateRange, storeId }) => {
     const { width } = useWindowSize();
@@ -63,17 +66,35 @@ const SalesByStore = ({ dateRange, storeId }) => {
             const data = await response.json();
             
             if (data.revenue_by_store) {
-                const formattedData = data.revenue_by_store.map((item, index) => ({
-                    name: item.store,
-                    value: parseInt(item.revenue.replace(/\s/g, '')),
-                    percentage: parseFloat(item.percentage),
-                    index
-                }));
+                const storeDataMap = data.revenue_by_store.reduce((acc, item) => {
+                    acc[item.store] = {
+                        value: parseInt(item.revenue.replace(/\s/g, '')),
+                        percentage: parseFloat(item.percentage)
+                    };
+                    return acc;
+                }, {});
+
+                const formattedData = Object.entries(STORE_NAMES).map(([id, name], index) => {
+                    const storeData = storeDataMap[name] || { value: 0, percentage: 0 };
+                    return {
+                        name,
+                        value: storeData.value,
+                        percentage: storeData.percentage,
+                        index
+                    };
+                });
+
                 setStoreData(formattedData);
             }
         } catch (error) {
             console.error('Failed to fetch store data:', error);
-            setStoreData([]);
+            const defaultData = Object.entries(STORE_NAMES).map(([id, name], index) => ({
+                name,
+                value: 0,
+                percentage: 0,
+                index
+            }));
+            setStoreData(defaultData);
         } finally {
             setIsLoading(false);
         }
@@ -159,7 +180,7 @@ const SalesByStore = ({ dateRange, storeId }) => {
                                 <p className="flex justify-between font-medium text-[15px] text-gray-300">
                                     <span className="truncate pr-2">{item.name}</span>
                                     <span className="whitespace-nowrap">
-                                        {new Intl.NumberFormat('fr-FR').format(item.value)} DH
+                                        {formatLargeNumber(item.value)} DH
                                     </span>
                                 </p>
                                 <p className="uppercase text-xs text-gray-400">

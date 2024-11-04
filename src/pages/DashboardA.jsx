@@ -55,10 +55,12 @@ const DashboardA = () => {
                                     storeId={selectedStoreId}
                                     dateRange={dateRange}
                                 />
-                                <SalesByStore 
-                                    storeId={selectedStoreId}
-                                    dateRange={dateRange}
-                                />
+                                <div className="md:col-span-2">
+                                    <SalesByStore 
+                                        storeId={selectedStoreId}
+                                        dateRange={dateRange}
+                                    />
+                                </div>
                             </>
                         ) : (
                             // For specific store, show only category chart
