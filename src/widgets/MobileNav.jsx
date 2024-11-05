@@ -51,48 +51,44 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
 
     return (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
-            <div className="relative bg-[#1B1B1F] shadow-lg rounded-xl p-2">
-                <div 
-                    className="absolute inset-0 backdrop-blur-xl bg-black/20 rounded-xl"
-                    style={{ WebkitBackdropFilter: 'blur(12px)' }}
-                />
-                <div className="relative flex overflow-x-auto scrollbar-hide gap-2">
+            <div className="bg-[#111827] rounded-xl p-2">
+                <div className="flex overflow-x-auto scrollbar-hide gap-2">
                     {STORES.map((store) => {
                         const isSelected = selectedStoreId === store.value;
                         return (
                             <div
                                 key={store.value}
-                                className={`
-                                    flex-shrink-0 rounded-lg overflow-hidden
-                                    ${isSelected ? 'w-[100px]' : 'w-[72px]'}
-                                    transition-all duration-300
-                                `}
+                                style={{ width: isSelected ? '100px' : '72px' }}
+                                className="flex-shrink-0"
                             >
                                 <button
                                     onClick={() => onStoreChange(store.value)}
                                     className={`
-                                        w-full h-full p-2
+                                        w-full rounded-lg p-2
                                         ${isSelected 
-                                            ? 'bg-[#3B82F6]' 
+                                            ? 'bg-blue-500' 
                                             : 'bg-[#1E293B]'
                                         }
                                     `}
+                                    style={{
+                                        backgroundColor: isSelected ? '#3B82F6' : '#1E293B'
+                                    }}
                                 >
                                     <div className="flex items-center justify-between mb-1">
                                         {store.value === 'all' ? (
-                                            <AiOutlineGlobal className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                                            <AiOutlineGlobal className="w-4 h-4 text-gray-300" />
                                         ) : (
-                                            <AiOutlineShop className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                                            <AiOutlineShop className="w-4 h-4 text-gray-300" />
                                         )}
                                         {isSelected && (
                                             <IoStatsChartSharp className="w-3.5 h-3.5 text-white" />
                                         )}
                                     </div>
                                     <div>
-                                        <div className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                                        <div className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-gray-300'}`}>
                                             {store.shortLabel}
                                         </div>
-                                        <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-white' : 'text-gray-500'}`}>
+                                        <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-white' : 'text-gray-400'}`}>
                                             {store.getStat()}
                                         </div>
                                     </div>
