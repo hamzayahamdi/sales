@@ -1,53 +1,103 @@
 import { AiOutlineShop, AiOutlineGlobal } from 'react-icons/ai';
+import { IoStatsChartSharp } from 'react-icons/io5';
 
-const MobileStoreNav = ({ selectedStoreId, onStoreChange }) => {
+const MobileStoreNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {}, loading }) => {
+    const formatStat = (value) => {
+        if (loading) return '...';
+        if (!storeSales || typeof value === 'undefined') return '0 DH';
+        const num = Math.round(value / 1000);
+        return `${num}K DH`;
+    };
+
     const STORES = [
-        { value: '1', label: 'Casa' },
-        { value: '2', label: 'Rabat' },
-        { value: '6', label: 'Marrakech' },
-        { value: '5', label: 'Tanger' },
-        { value: '10', label: 'Outlet' },
-        { value: 'all', label: 'Tous' }
+        { 
+            value: '1', 
+            label: 'Casablanca', 
+            shortLabel: 'Casa',
+            getStat: () => formatStat(storeSales?.['1'] || 0)
+        },
+        { 
+            value: '2', 
+            label: 'Rabat',
+            shortLabel: 'Rabat', 
+            getStat: () => formatStat(storeSales?.['2'] || 0)
+        },
+        { 
+            value: '6', 
+            label: 'Marrakech',
+            shortLabel: 'Kech', 
+            getStat: () => formatStat(storeSales?.['6'] || 0)
+        },
+        { 
+            value: '5', 
+            label: 'Tanger',
+            shortLabel: 'Tanger', 
+            getStat: () => formatStat(storeSales?.['5'] || 0)
+        },
+        { 
+            value: '10', 
+            label: 'Outlet',
+            shortLabel: 'Outlet', 
+            getStat: () => formatStat(storeSales?.['10'] || 0)
+        },
+        { 
+            value: 'all', 
+            label: 'Tous',
+            shortLabel: 'Tous', 
+            getStat: () => formatStat(storeSales?.['all'] || 0)
+        }
     ];
 
     return (
-        <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-            <div className="flex items-center bg-[#1a2942] shadow-lg rounded-full p-2 border border-[#374151]/20">
-                {STORES.map((store) => {
-                    const isSelected = selectedStoreId === store.value;
-                    
-                    return (
-                        <button
-                            key={store.value}
-                            onClick={() => onStoreChange(store.value)}
-                            style={{
-                                minWidth: isSelected ? '100px' : '50px',
-                                backgroundColor: isSelected ? '#5a9bed' : 'transparent',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                            }}
-                            className={`
-                                relative py-3 px-4 rounded-full flex items-center
-                                ${isSelected 
-                                    ? 'text-white' 
-                                    : 'text-gray-400 hover:text-white hover:bg-[#2b3d54]'
-                                }
-                            `}
-                        >
-                            {store.value === 'all' ? (
-                                <AiOutlineGlobal className={`w-6 h-6 ${isSelected ? '' : 'bg-[#2b3d54] rounded-full'}`} />
-                            ) : (
-                                <AiOutlineShop className={`w-6 h-6 ${isSelected ? '' : 'bg-[#2b3d54] rounded-full'}`} />
-                            )}
-                            {isSelected && (
-                                <span className="text-sm font-bold ml-2">
-                                    {store.value === 'all' ? 'ALL' : store.label}
-                                </span>
-                            )}
-                        </button>
-                    );
-                })}
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
+            <div className="bg-[#111827] rounded-xl p-2">
+                <div className="flex overflow-x-auto scrollbar-hide gap-2">
+                    {STORES.map((store) => {
+                        const isSelected = selectedStoreId === store.value;
+                        return (
+                            <div
+                                key={store.value}
+                                style={{ width: isSelected ? '100px' : '72px' }}
+                                className="flex-shrink-0"
+                            >
+                                <button
+                                    onClick={() => onStoreChange(store.value)}
+                                    className={`
+                                        w-full rounded-lg p-2
+                                        ${isSelected 
+                                            ? 'bg-blue-500' 
+                                            : 'bg-[#1E293B]'
+                                        }
+                                    `}
+                                    style={{
+                                        backgroundColor: isSelected ? '#3B82F6' : '#1E293B'
+                                    }}
+                                >
+                                    <div className="flex items-center justify-between mb-1">
+                                        {store.value === 'all' ? (
+                                            <AiOutlineGlobal className="w-4 h-4 text-gray-300" />
+                                        ) : (
+                                            <AiOutlineShop className="w-4 h-4 text-gray-300" />
+                                        )}
+                                        {isSelected && (
+                                            <IoStatsChartSharp className="w-3.5 h-3.5 text-white" />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <div className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                                            {store.shortLabel}
+                                        </div>
+                                        <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                                            {store.getStat()}
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-        </nav>
+        </div>
     );
 };
 
