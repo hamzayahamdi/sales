@@ -14,49 +14,108 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
             value: '1', 
             label: 'Casablanca', 
             shortLabel: 'Casa',
-            getStat: () => formatStat(storeSales?.['1'] || 0)
+            getStat: () => formatStat(storeSales?.['1'] || 0),
+            color: '#3B82F6'
         },
         { 
             value: '2', 
             label: 'Rabat',
             shortLabel: 'Rabat', 
-            getStat: () => formatStat(storeSales?.['2'] || 0)
+            getStat: () => formatStat(storeSales?.['2'] || 0),
+            color: '#10B981'
         },
         { 
             value: '6', 
             label: 'Marrakech',
             shortLabel: 'Kech', 
-            getStat: () => formatStat(storeSales?.['6'] || 0)
+            getStat: () => formatStat(storeSales?.['6'] || 0),
+            color: '#F43F5E'
         },
         { 
             value: '5', 
             label: 'Tanger',
             shortLabel: 'Tanger', 
-            getStat: () => formatStat(storeSales?.['5'] || 0)
+            getStat: () => formatStat(storeSales?.['5'] || 0),
+            color: '#8B5CF6'
         },
         { 
             value: '10', 
             label: 'Outlet',
             shortLabel: 'Outlet', 
-            getStat: () => formatStat(storeSales?.['10'] || 0)
+            getStat: () => formatStat(storeSales?.['10'] || 0),
+            color: '#F59E0B'
         },
         { 
             value: 'all', 
-            label: 'Tous',
+            label: 'Tous les magasins',
             shortLabel: 'Tous', 
-            getStat: () => formatStat(storeSales?.['all'] || 0)
+            getStat: () => formatStat(storeSales?.['all'] || 0),
+            color: '#6366F1'
         }
     ];
 
+    // Desktop version
+    if (isDesktop) {
+        return (
+            <div className="flex gap-2 px-4">
+                {STORES.map((store) => {
+                    const isSelected = selectedStoreId === store.value;
+                    return (
+                        <button
+                            key={store.value}
+                            onClick={() => onStoreChange(store.value)}
+                            className={`
+                                flex items-center gap-2.5 py-1.5 px-3 rounded-lg
+                                transition-all duration-500 ease-out
+                                ${isSelected ? 'min-w-[160px]' : 'min-w-[140px]'}
+                            `}
+                            style={{
+                                backgroundColor: isSelected ? store.color : '#1E293B',
+                                transform: isSelected ? 'translateY(-1px) scale(1.02)' : 'translateY(0) scale(1)',
+                                boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'
+                            }}
+                        >
+                            <div className={`
+                                transition-transform duration-500
+                                ${isSelected ? 'scale-110' : ''}
+                            `}>
+                                {store.value === 'all' ? (
+                                    <AiOutlineGlobal className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                                ) : (
+                                    <AiOutlineShop className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                                )}
+                            </div>
+                            <div className="flex flex-col items-start min-w-0">
+                                <span className={`
+                                    text-sm font-bold truncate w-full transition-all duration-500
+                                    ${isSelected ? 'text-white' : 'text-gray-400'}
+                                `}>
+                                    {store.value === 'all' ? 'Tous les magasins' : store.label}
+                                </span>
+                                <span className={`
+                                    text-[11px] font-medium transition-all duration-500
+                                    ${isSelected ? 'text-white/90' : 'text-gray-500'}
+                                `}>
+                                    {store.getStat()}
+                                </span>
+                            </div>
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    // Mobile version
     return (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
-            <div style={{ backgroundColor: '#0F172A' }} className="rounded-xl p-2 shadow-xl">
+            <div className="bg-[#0A0F1A] rounded-xl p-2 shadow-xl">
                 <div className="flex overflow-x-auto scrollbar-hide gap-2">
                     {STORES.map((store) => {
                         const isSelected = selectedStoreId === store.value;
                         const buttonStyles = {
                             width: '100%',
-                            backgroundColor: isSelected ? '#2563EB' : '#1F2937',
+                            backgroundColor: isSelected ? store.color : '#1F2937',
                             borderRadius: '0.5rem',
                             padding: '0.5rem',
                             WebkitAppearance: 'none',
