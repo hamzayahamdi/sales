@@ -23,7 +23,7 @@ const PERIODS = [
     { value: 'mois', label: 'Mois' }
 ];
 
-const SalesAnalyticsArea = ({ storeId = 'all' }) => {
+const SalesAnalyticsArea = ({ dateRange, storeId }) => {
     const { width } = useWindowSize();
     const [salesData, setSalesData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -380,9 +380,9 @@ const SalesAnalyticsArea = ({ storeId = 'all' }) => {
                 </div>
             </div>
 
-            {/* Chart */}
-            <div className="flex-1 min-h-0">
-                <ResponsiveContainer width="99%" height="100%">
+            {/* Chart with explicit height */}
+            <div className="flex-1 min-h-[300px] w-full">
+                <ResponsiveContainer width="99%" height="99%">
                     <BarChart 
                         data={salesData} 
                         margin={{ 
