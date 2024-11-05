@@ -12,7 +12,7 @@ const MobileStoreNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales 
     const STORES = [
         { 
             value: '1', 
-            label: 'Casablanca', 
+            label: 'Casablanca1', 
             shortLabel: 'Casa',
             getStat: () => formatStat(storeSales?.['1'] || 0)
         },
