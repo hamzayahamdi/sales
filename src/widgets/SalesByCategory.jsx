@@ -9,7 +9,6 @@ import {useState, useEffect} from 'react';
 import {useTheme} from '@contexts/themeContext';
 import {useWindowSize} from 'react-use';
 import dayjs from 'dayjs';
-import useTableScroll from '@hooks/useTableScroll';
 
 // constants
 const PERIODS = [
@@ -104,7 +103,6 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
     const [period, setPeriod] = useState(PERIODS[0]);
     const [categoryData, setCategoryData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { ref: categoryListRef, isScrollable } = useTableScroll();
 
     const fetchCategoryData = async () => {
         setIsLoading(true);
@@ -258,11 +256,8 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                 </div>
 
                 {/* Categories List - consistent height across all views on mobile */}
-                <div 
-                    ref={categoryListRef}
-                    className={`flex flex-col flex-1 w-full gap-4 overflow-y-auto pr-2
-                        max-h-[294px] md:max-h-[${storeId === 'all' ? '400px' : '294px'}]
-                        ${isScrollable ? 'touch-auto' : 'touch-none'}`}
+                <div className={`flex flex-col flex-1 w-full gap-4 overflow-y-auto pr-2
+                    max-h-[294px] md:max-h-[${storeId === 'all' ? '400px' : '294px'}]`}
                 >
                     {categoryData.map((item, index) => (
                         <div key={index} className="flex gap-3">

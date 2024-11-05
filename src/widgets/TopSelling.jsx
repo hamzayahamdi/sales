@@ -8,7 +8,6 @@ import {useWindowSize} from 'react-use';
 import {useState, useEffect, useMemo} from 'react';
 import { FaSearch, FaFileExport, FaChartLine } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
-import useTableScroll from '@hooks/useTableScroll';
 
 const TopSelling = ({ storeId = 'all', dateRange }) => {
     const {width} = useWindowSize();
@@ -17,7 +16,6 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [productsStock, setProductsStock] = useState({});
     const [searchTerm, setSearchTerm] = useState('');
-    const { ref: tableRef, isScrollable } = useTableScroll();
 
     const fetchAllProducts = async (productName) => {
         try {
@@ -353,10 +351,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
             </div>
 
             {/* Table */}
-            <div 
-                ref={tableRef}
-                className={`flex-1 ${isScrollable ? 'touch-auto' : 'touch-none'}`}
-            >
+            <div className="flex-1">
                 <BasicTable 
                     dataSource={filteredProducts}
                     columns={getColumns()}
@@ -364,7 +359,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                     showSorterTooltip={false}
                     pagination={false}
                     size="small"
-                    className={`top-selling-table h-full dark ${isScrollable ? 'touch-auto' : 'touch-none'}`}
+                    className="top-selling-table h-full dark"
                     scroll={{ y: 360 }}
                     style={{
                         backgroundColor: '#111827',
