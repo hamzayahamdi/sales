@@ -5,7 +5,15 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
     const formatStat = (value) => {
         if (loading) return '...';
         if (!storeSales || typeof value === 'undefined') return '0 DH';
+        
+        // Convert to number and round
         const num = Math.round(value / 1000);
+        
+        // Format as M if >= 1000K
+        if (num >= 1000) {
+            return `${(num / 1000).toFixed(1)}M DH`;
+        }
+        
         return `${num}K DH`;
     };
 
