@@ -7,7 +7,7 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
 
     return (
         <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
-            <div className="bg-[#1B1B1F] shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-xl p-2 border border-[#2B2B30]">
+            <div className="bg-[#1B1B1F]/95 backdrop-blur-lg shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-xl p-2 border border-[#2B2B30]">
                 <div className="flex overflow-x-auto scrollbar-hide gap-2">
                     {STORES.map((store) => {
                         const isSelected = selectedStoreId === store.value;
@@ -20,11 +20,13 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                     transition-all duration-300 ease-in-out
                                     ${isSelected 
                                         ? `bg-gradient-to-br ${store.gradient} shadow-lg` 
-                                        : 'bg-[#2B2B30]'
+                                        : 'bg-[#2B2B30]/90 backdrop-blur-sm border border-[#374151]/30'
                                     }
                                 `}
                                 style={{
                                     width: isSelected ? '100px' : '72px',
+                                    WebkitBackfaceVisibility: 'hidden',
+                                    WebkitTransform: 'translate3d(0, 0, 0)',
                                 }}
                             >
                                 <div className="flex flex-col p-2">
@@ -39,10 +41,10 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                         )}
                                     </div>
                                     <div>
-                                        <div className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                                        <div className={`text-xs font-bold tracking-wide ${isSelected ? 'text-white' : 'text-gray-300'}`}>
                                             {store.shortLabel}
                                         </div>
-                                        <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                                        <div className={`text-[10px] mt-0.5 font-medium ${isSelected ? 'text-white' : 'text-gray-400'}`}>
                                             {store.getStat()}
                                         </div>
                                     </div>

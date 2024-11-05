@@ -3,6 +3,7 @@ import { useWindowSize } from 'react-use';
 import BasicTable from '@components/BasicTable';
 import { FaCreditCard, FaMoneyBillWave, FaUniversity, FaMoneyCheck, FaSearch, FaFileExport, FaFileInvoice } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
+import useTableScroll from '@hooks/useTableScroll';
 
 const PAYMENT_ICONS = {
     'Carte bancaire': { icon: FaCreditCard, color: '#22c55e' },
@@ -17,6 +18,7 @@ const OrdersList = ({ dateRange, storeId }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [expandedInvoice, setExpandedInvoice] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const { ref: listRef, isScrollable } = useTableScroll();
 
     const fetchOrders = async () => {
         setIsLoading(true);
@@ -197,7 +199,10 @@ const OrdersList = ({ dateRange, storeId }) => {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto">
+            <div 
+                ref={listRef}
+                className={`flex-1 overflow-y-auto ${isScrollable ? 'touch-auto' : 'touch-none'}`}
+            >
                 <div className="space-y-2">
                     {filteredOrders.map((order) => {
                         const isAvoir = parseFloat(order.total_invoice_amount.replace(/[^\d.-]/g, '')) < 0;
