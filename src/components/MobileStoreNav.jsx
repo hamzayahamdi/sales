@@ -50,7 +50,7 @@ const MobileStoreNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales 
 
     return (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
-            <div className="bg-[#111827] rounded-xl p-2">
+            <div className="bg-[#0F172A] rounded-xl p-2 shadow-xl">
                 <div className="flex overflow-x-auto scrollbar-hide gap-2">
                     {STORES.map((store) => {
                         const isSelected = selectedStoreId === store.value;
@@ -62,32 +62,32 @@ const MobileStoreNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales 
                             >
                                 <button
                                     onClick={() => onStoreChange(store.value)}
+                                    style={{
+                                        backgroundColor: isSelected ? '#2563EB' : '#1F2937'
+                                    }}
                                     className={`
                                         w-full rounded-lg p-2
                                         ${isSelected 
-                                            ? 'bg-blue-500' 
-                                            : 'bg-[#1E293B]'
+                                            ? 'shadow-lg shadow-blue-500/20' 
+                                            : 'shadow-md shadow-black/5'
                                         }
                                     `}
-                                    style={{
-                                        backgroundColor: isSelected ? '#3B82F6' : '#1E293B'
-                                    }}
                                 >
                                     <div className="flex items-center justify-between mb-1">
                                         {store.value === 'all' ? (
-                                            <AiOutlineGlobal className="w-4 h-4 text-gray-300" />
+                                            <AiOutlineGlobal className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
                                         ) : (
-                                            <AiOutlineShop className="w-4 h-4 text-gray-300" />
+                                            <AiOutlineShop className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
                                         )}
                                         {isSelected && (
                                             <IoStatsChartSharp className="w-3.5 h-3.5 text-white" />
                                         )}
                                     </div>
                                     <div>
-                                        <div className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                                        <div className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-gray-400'}`}>
                                             {store.shortLabel}
                                         </div>
-                                        <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                                        <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-white' : 'text-gray-500'}`}>
                                             {store.getStat()}
                                         </div>
                                     </div>
