@@ -23,21 +23,21 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
             label: 'Casablanca', 
             shortLabel: 'Casa',
             getStat: () => formatStat(storeSales?.['1'] || 0),
-            color: '#3B82F6'
+            color: '#22C55E'
         },
         { 
             value: '2', 
             label: 'Rabat',
             shortLabel: 'Rabat', 
             getStat: () => formatStat(storeSales?.['2'] || 0),
-            color: '#10B981'
+            color: '#F97316'
         },
         { 
             value: '6', 
             label: 'Marrakech',
             shortLabel: 'Kech', 
             getStat: () => formatStat(storeSales?.['6'] || 0),
-            color: '#F43F5E'
+            color: '#EC4899'
         },
         { 
             value: '5', 
@@ -51,14 +51,14 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
             label: 'Outlet',
             shortLabel: 'Outlet', 
             getStat: () => formatStat(storeSales?.['10'] || 0),
-            color: '#F59E0B'
+            color: '#EAB308'
         },
         { 
             value: 'all', 
             label: 'Tous les magasins',
             shortLabel: 'Tous', 
             getStat: () => formatStat(storeSales?.['all'] || 0),
-            color: '#6366F1'
+            color: '#06B6D4'
         }
     ];
 
@@ -78,7 +78,7 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                 ${isSelected ? 'min-w-[160px]' : 'min-w-[140px]'}
                             `}
                             style={{
-                                backgroundColor: isSelected ? store.color : '#1E293B',
+                                backgroundColor: isSelected ? store.color : '#f3f4f6',
                                 transform: isSelected ? 'translateY(-1px) scale(1.02)' : 'translateY(0) scale(1)',
                                 boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'
                             }}
@@ -88,15 +88,15 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                 ${isSelected ? 'scale-110' : ''}
                             `}>
                                 {store.value === 'all' ? (
-                                    <AiOutlineGlobal className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                                    <AiOutlineGlobal className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
                                 ) : (
-                                    <AiOutlineShop className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                                    <AiOutlineShop className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
                                 )}
                             </div>
                             <div className="flex flex-col items-start min-w-0">
                                 <span className={`
                                     text-sm font-bold truncate w-full transition-all duration-500
-                                    ${isSelected ? 'text-white' : 'text-gray-400'}
+                                    ${isSelected ? 'text-white' : 'text-gray-600'}
                                 `}>
                                     {store.value === 'all' ? 'Tous les magasins' : store.label}
                                 </span>
@@ -117,26 +117,31 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
     // Mobile version
     return (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
-            <div className="bg-[#0A0F1A] rounded-xl p-2 shadow-xl">
+            <div className="bg-gradient-to-r from-[#2C3E50] to-[#3498DB] rounded-xl p-2 shadow-lg">
                 <div className="flex overflow-x-auto scrollbar-hide gap-2">
                     {STORES.map((store) => {
                         const isSelected = selectedStoreId === store.value;
                         const buttonStyles = {
                             width: '100%',
-                            backgroundColor: isSelected ? store.color : '#1F2937',
+                            backgroundColor: isSelected ? store.color : 'rgba(255, 255, 255, 0.1)',
+                            backdropFilter: isSelected ? 'none' : 'blur(8px)',
                             borderRadius: '0.5rem',
                             padding: '0.5rem',
                             WebkitAppearance: 'none',
                             WebkitBorderRadius: '0.5rem',
-                            display: 'block'
+                            display: 'block',
+                            transition: 'all 0.2s ease',
+                            border: isSelected ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                            boxShadow: isSelected ? 'none' : '0 2px 4px rgba(0,0,0,0.1)'
                         };
 
                         return (
                             <div
                                 key={store.value}
                                 style={{
-                                    width: isSelected ? '100px' : '72px',
+                                    width: isSelected ? '140px' : '72px',
                                     flexShrink: 0,
+                                    transition: 'width 0.2s ease'
                                 }}
                             >
                                 <button
@@ -153,13 +158,13 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                             <AiOutlineGlobal style={{ 
                                                 width: '1rem',
                                                 height: '1rem',
-                                                color: isSelected ? '#ffffff' : '#9CA3AF'
+                                                color: '#ffffff'
                                             }} />
                                         ) : (
                                             <AiOutlineShop style={{ 
                                                 width: '1rem',
                                                 height: '1rem',
-                                                color: isSelected ? '#ffffff' : '#9CA3AF'
+                                                color: '#ffffff'
                                             }} />
                                         )}
                                         {isSelected && (
@@ -174,14 +179,17 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                         <div style={{ 
                                             fontSize: '0.75rem',
                                             fontWeight: 'bold',
-                                            color: isSelected ? '#ffffff' : '#9CA3AF'
+                                            color: '#ffffff',
+                                            whiteSpace: isSelected ? 'normal' : 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis'
                                         }}>
-                                            {store.shortLabel}
+                                            {isSelected ? store.label : store.shortLabel}
                                         </div>
                                         <div style={{ 
                                             fontSize: '0.625rem',
                                             marginTop: '0.125rem',
-                                            color: isSelected ? '#ffffff' : '#6B7280'
+                                            color: 'rgba(255, 255, 255, 0.8)'
                                         }}>
                                             {store.getStat()}
                                         </div>

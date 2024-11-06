@@ -341,3 +341,8 @@
 .icon-arrow-trend-up-regular:before {
     content: "\e947";
 }
+
+/* Add this at the end of the file */
+.pb-24 .px-4 .space-y-6 .grid .flex-col .md\:items-start .m-auto .justify-center .justify-center .counter {
+    color: #111827 !important;
+}

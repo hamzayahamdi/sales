@@ -107,7 +107,7 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                         </div>
                     )}
                     <div className="flex flex-col min-w-0">
-                        <span className={`font-medium truncate uppercase ${record.rank <= 3 ? 'text-white' : ''}`}>
+                        <span className="font-medium truncate uppercase text-gray-900">
                             {text}
                         </span>
                         <span className="text-xs text-gray-500 truncate">{record.store}</span>
@@ -120,8 +120,9 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
             dataIndex: 'total_sales',
             key: 'total_sales',
             width: '40%',
+            align: 'center',
             render: (value, record) => (
-                <span className={`font-medium ${record.rank <= 3 ? 'text-white' : ''}`}>
+                <span className="font-medium text-gray-900">
                     {new Intl.NumberFormat('en-US').format(value)} DH
                 </span>
             )
@@ -146,7 +147,7 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                         </div>
                     )}
                     <div className="flex flex-col">
-                        <span className={`font-medium uppercase ${record.rank <= 3 ? 'text-white' : ''}`}>
+                        <span className="font-medium uppercase text-gray-900">
                             {text}
                         </span>
                         <span className="text-xs text-gray-500">{record.store}</span>
@@ -159,8 +160,9 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
             dataIndex: 'sales_count',
             key: 'sales_count',
             width: '20%',
+            align: 'center',
             render: (value, record) => (
-                <span className={`font-medium ${record.rank <= 3 ? 'text-white' : ''}`}>
+                <span className="font-medium text-gray-900">
                     {new Intl.NumberFormat('en-US').format(value)}
                 </span>
             )
@@ -170,8 +172,9 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
             dataIndex: 'avg_basket',
             key: 'avg_basket',
             width: '20%',
+            align: 'center',
             render: (value, record) => (
-                <span className={`font-medium ${record.rank <= 3 ? 'text-white' : ''}`}>
+                <span className="font-medium text-gray-900">
                     {new Intl.NumberFormat('en-US').format(value)} DH
                 </span>
             )
@@ -181,8 +184,9 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
             dataIndex: 'total_sales',
             key: 'total_sales',
             width: '25%',
+            align: 'center',
             render: (value, record) => (
-                <span className={`font-medium ${record.rank <= 3 ? 'text-white' : ''}`}>
+                <span className="font-medium text-gray-900">
                     {new Intl.NumberFormat('en-US').format(value)} DH
                 </span>
             )
@@ -217,15 +221,15 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-[#1F2937] shadow-lg rounded-xl">
-                <h2 className="text-xl font-semibold mb-4 text-gray-300">Classement Vendeurs</h2>
+            <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">Classement Vendeurs</h2>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="animate-pulse space-y-4 w-full">
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
                     </div>
                 </div>
             </div>
@@ -233,19 +237,17 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
     }
 
     return (
-        <div className="flex flex-col h-full p-4 xs:p-5 bg-[#1F2937] shadow-lg rounded-xl">
-            <div className="relative mb-4">
-                <div 
-                    className="absolute inset-0 bg-white/5 backdrop-blur-[2px] transform skew-x-[-20deg] rounded 
-                        shadow-[0_8px_32px_rgba(31,41,55,0.5)] 
-                        after:absolute after:inset-0 after:bg-gradient-to-r 
-                        after:from-white/10 after:to-transparent after:rounded
-                        before:absolute before:inset-0 before:bg-blue-500/20 before:blur-[15px] before:rounded"
-                />
-                <h2 className="relative z-10 px-6 py-2.5 flex items-center gap-2 text-xl font-semibold text-white">
-                    <FaUsers className="text-lg text-blue-400" />
-                    Classement Vendeurs
-                </h2>
+        <div className="flex flex-col h-full p-4 xs:p-5 bg-white shadow-lg rounded-xl">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#599AED]/10">
+                        <FaUsers className="w-5 h-5 text-[#599AED]" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900">Classement Vendeurs</h2>
+                        <p className="text-sm text-gray-500 mt-0.5">Performance de l'équipe de vente</p>
+                    </div>
+                </div>
             </div>
             <div className="flex items-center gap-2 mb-4">
                 <div className="relative flex-1">
@@ -254,13 +256,13 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                         placeholder="Rechercher..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-[#111827] border-0 rounded-lg text-gray-300 placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 pr-4 py-2 bg-[#F3F3F8] border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#599AED]"
                     />
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
                 <button 
                     onClick={exportToExcel}
-                    className="p-2 bg-[#111827] text-[#60A5FA] hover:text-[#3b82f6] rounded-lg transition-colors shrink-0"
+                    className="p-2 bg-[#F3F3F8] text-[#599AED] hover:bg-[#599AED] hover:text-white rounded-lg transition-colors shrink-0"
                 >
                     <FaFileExport size={20} />
                 </button>
@@ -273,30 +275,32 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                     showSorterTooltip={false}
                     pagination={false}
                     size="small"
-                    className="sales-team-table h-full dark"
+                    className="sales-team-table h-full light"
                     scroll={{ y: 360 }}
                     style={{
-                        backgroundColor: '#111827',
+                        backgroundColor: '#ffffff',
                         borderRadius: '8px',
                     }}
                 />
             </div>
             <style jsx global>{`
                 .sales-team-table .ant-table {
-                    background: #111827 !important;
+                    background: #ffffff !important;
                 }
                 .sales-team-table .ant-table-thead > tr > th {
-                    background: #111827 !important;
-                    border-bottom: 1px solid #1F2937 !important;
+                    background: #F3F3F8 !important;
+                    border-bottom: 1px solid #E5E7EB !important;
+                    color: #4B5563 !important;
                 }
                 .sales-team-table .ant-table-tbody > tr > td {
-                    border-bottom: 1px solid #1F2937 !important;
+                    border-bottom: 1px solid #E5E7EB !important;
+                    color: #111827 !important;
                 }
                 .sales-team-table .ant-table-tbody > tr:hover > td {
-                    background: #1F2937 !important;
+                    background: #F3F3F8 !important;
                 }
                 .sales-team-table .ant-table-tbody > tr.ant-table-row:hover > td {
-                    background: #1F2937 !important;
+                    background: #F3F3F8 !important;
                 }
             `}</style>
         </div>

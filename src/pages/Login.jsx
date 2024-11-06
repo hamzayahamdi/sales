@@ -33,11 +33,13 @@ const Login = () => {
                     minWidth: 200.00,
                     scale: 1.00,
                     scaleMobile: 1.00,
-                    backgroundColor: 0x0B1121,
-                    color: 0x5a9bed,
+                    backgroundColor: 0x1E293B,
+                    color: 0xFFFFFF,
                     backgroundAlpha: 1,
                     spacing: 10,
-                    showDots: false
+                    showDots: false,
+                    color1: 0xFFFFFF,
+                    color2: 0xFFFFFF
                 })
             );
         }
@@ -71,14 +73,14 @@ const Login = () => {
                 <div className="w-full min-h-screen flex items-center justify-center px-4">
                     {/* Login container */}
                     <div className="relative w-full max-w-[340px] sm:max-w-md">
-                        <div className="relative bg-[#1a2942]/40 backdrop-blur-2xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/10">
+                        <div className="relative bg-white rounded-2xl shadow-lg border border-gray-200">
                             <div className="p-6 sm:p-8">
                                 {/* Logo */}
                                 <div className="flex justify-center mb-8 sm:mb-12">
                                     <img 
                                         src={salesLogo} 
                                         alt="Sales Logo" 
-                                        className="h-16 sm:h-20 w-auto drop-shadow-2xl"
+                                        className="h-16 sm:h-20 w-auto"
                                     />
                                 </div>
 
@@ -87,12 +89,12 @@ const Login = () => {
                                     <div className="space-y-2">
                                         <label 
                                             htmlFor="password" 
-                                            className="block text-sm font-medium text-gray-200 ml-1"
+                                            className="block text-sm font-medium text-gray-700 ml-1"
                                         >
                                             Mot de passe
                                         </label>
                                         <div className="relative group">
-                                            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-30 group-hover:opacity-100 transition duration-500 group-hover:blur"></div>
+                                            <div className="absolute -inset-0.5 bg-[#599AED] rounded-lg opacity-30 group-hover:opacity-100 transition duration-500 group-hover:blur"></div>
                                             <div className="relative flex items-center">
                                                 <FaLock className="absolute left-3 text-gray-400" />
                                                 <input
@@ -102,14 +104,14 @@ const Login = () => {
                                                     required
                                                     value={password}
                                                     onChange={(e) => setPassword(e.target.value)}
-                                                    className="block w-full pl-10 pr-12 py-3 bg-[#0B1121]/50 border-0 rounded-lg backdrop-blur-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                                    className="block w-full pl-10 pr-12 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#599AED] focus:border-transparent transition-all duration-200"
                                                     placeholder="Entrez votre mot de passe"
                                                     autoComplete="current-password"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute right-3 text-gray-400 hover:text-gray-200 transition-colors duration-200"
+                                                    className="absolute right-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                                                 >
                                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                                 </button>
@@ -118,21 +120,16 @@ const Login = () => {
                                     </div>
 
                                     {error && (
-                                        <div className="text-red-500 text-sm text-center bg-red-500/10 py-2 rounded-lg">
+                                        <div className="text-red-500 text-sm text-center bg-red-50 py-2 rounded-lg">
                                             {error}
                                         </div>
                                     )}
 
                                     <button
                                         type="submit"
-                                        className="relative w-full group overflow-hidden rounded-lg p-0.5 transition-all duration-300 hover:scale-[1.01] active:scale-[0.98]"
+                                        className="relative w-full bg-[#599AED] text-white font-medium py-3 rounded-lg hover:bg-[#4080d4] transition-all duration-200"
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 group-hover:blur-sm"></div>
-                                        <div className="relative w-full px-7 py-3 bg-[#0B1121]/90 rounded-[7px] leading-none flex items-center justify-center group-hover:bg-[#0B1121]/80">
-                                            <span className="text-white font-medium group-hover:text-blue-200 transition duration-200">
-                                                Se connecter
-                                            </span>
-                                        </div>
+                                        Se connecter
                                     </button>
                                 </form>
                             </div>
@@ -140,10 +137,10 @@ const Login = () => {
 
                         {/* Copyright */}
                         <div className="absolute -bottom-12 sm:-bottom-16 left-0 right-0 text-center">
-                            <p className="text-xs sm:text-sm text-gray-400">
+                            <p className="text-xs sm:text-sm text-white">
                                 © {new Date().getFullYear()} Sketch Design. Tous droits réservés.
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-white/80 mt-1">
                                 Développé avec ❤️ par l'équipe Sketch Design
                             </p>
                         </div>

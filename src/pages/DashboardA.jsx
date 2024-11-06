@@ -23,7 +23,7 @@ const DashboardA = () => {
     const { storeSales, loading } = useStoreSales(dateRange);
 
     return (
-        <div className="bg-[#111827] min-h-screen">
+        <div className="bg-[#F3F3F8] min-h-screen">
             <AppBar 
                 title="Dashboard"
                 dateRange={dateRange}
@@ -35,8 +35,8 @@ const DashboardA = () => {
             />
             <div className="space-y-6 pt-[20px] pb-24">
                 <div className="relative">
-                    <div className="absolute inset-0 w-screen">
-                        <div className="mx-auto px-4 max-w-[1920px]">
+                    <div className="absolute inset-0 w-screen bg-[#F3F3F8]" style={{ boxShadow: 'none' }}>
+                        <div className="mx-auto px-4 max-w-[1920px]" style={{ boxShadow: 'none' }}>
                             <Statistics 
                                 dateRange={dateRange} 
                                 storeId={selectedStoreId} 

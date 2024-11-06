@@ -1,14 +1,26 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useWindowSize } from 'react-use';
 import BasicTable from '@components/BasicTable';
-import { FaCreditCard, FaMoneyBillWave, FaUniversity, FaMoneyCheck, FaSearch, FaFileExport, FaFileInvoice } from 'react-icons/fa';
+import { FaCreditCard, FaMoneyBillWave, FaUniversity, FaMoneyCheck, FaSearch, FaFileExport, FaFileInvoice, FaPhone } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
+import { Transition } from '@headlessui/react';
 
 const PAYMENT_ICONS = {
     'Carte bancaire': { icon: FaCreditCard, color: '#22c55e' },
     'Espèce': { icon: FaMoneyBillWave, color: '#3b82f6' },
     'Virement': { icon: FaUniversity, color: '#f59e0b' },
     'Chèque': { icon: FaMoneyCheck, color: '#8b5cf6' }
+};
+
+const decodeHtmlEntities = (text) => {
+    if (!text) return '';
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    return textArea.value
+        .replace(/&#039;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&amp;/g, '&');
 };
 
 const OrdersList = ({ dateRange, storeId }) => {
@@ -92,9 +104,7 @@ const OrdersList = ({ dateRange, storeId }) => {
         if (unpaidAmount > 0) {
             return (
                 <span className="px-2 py-0.5 text-xs font-medium rounded-full 
-                    border border-[#ef4444] text-[#ef4444] bg-[#ef4444]/10
-                    shadow-[0_0_10px_rgba(239,68,68,0.3)] hover:shadow-[0_0_15px_rgba(239,68,68,0.4)]
-                    transition-shadow"
+                    bg-[#FF4444] text-white"
                 >
                     Non payé
                 </span>
@@ -103,9 +113,7 @@ const OrdersList = ({ dateRange, storeId }) => {
 
         return (
             <span className="px-2 py-0.5 text-xs font-medium rounded-full 
-                border border-[#22c55e] text-[#22c55e] bg-[#22c55e]/10
-                shadow-[0_0_10px_rgba(34,197,94,0.3)] hover:shadow-[0_0_15px_rgba(34,197,94,0.4)]
-                transition-shadow"
+                bg-[#22DD66] text-white"
             >
                 Payé
             </span>
@@ -115,12 +123,32 @@ const OrdersList = ({ dateRange, storeId }) => {
     const filteredOrders = useMemo(() => {
         if (!searchTerm) return orders;
         
-        return orders.filter(order => 
-            order.invoice_ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.client_phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.commercial_name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        const searchTerms = searchTerm.toLowerCase().split(' ').filter(term => term.length > 0);
+        
+        return orders.filter(order => {
+            // Basic order info search
+            const orderInfo = [
+                order.invoice_ref.toLowerCase(),
+                order.client_name.toLowerCase(),
+                order.client_phone?.toLowerCase(),
+                order.commercial_name.toLowerCase()
+            ].join(' ');
+
+            // Product search with combinations
+            const hasMatchingProduct = order.items.some(item => {
+                const productInfo = [
+                    item.product_label?.toLowerCase(),
+                    item.product_ref?.toLowerCase(),
+                    item.invoice_description?.toLowerCase()
+                ].filter(Boolean).join(' ');
+
+                // Check if all search terms are found in the product info
+                return searchTerms.every(term => productInfo.includes(term));
+            });
+
+            // Return true if either order info or product info matches all search terms
+            return searchTerms.every(term => orderInfo.includes(term)) || hasMatchingProduct;
+        });
     }, [orders, searchTerm]);
 
     const exportToExcel = () => {
@@ -146,13 +174,13 @@ const OrdersList = ({ dateRange, storeId }) => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-[#1F2937] shadow-lg rounded-xl">
-                <h2 className="text-xl font-semibold mb-4 text-gray-300">Liste des factures</h2>
+            <div className="flex flex-col h-[700px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">Liste des factures</h2>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="animate-pulse space-y-4 w-full">
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
                     </div>
                 </div>
             </div>
@@ -160,20 +188,18 @@ const OrdersList = ({ dateRange, storeId }) => {
     }
 
     return (
-        <div className="flex flex-col h-[700px] p-4 xs:p-5 bg-[#1F2937] shadow-lg rounded-xl">
+        <div className="flex flex-col h-[700px] p-4 xs:p-5 bg-white shadow-lg rounded-xl">
             {/* Title */}
-            <div className="relative mb-4">
-                <div 
-                    className="absolute inset-0 bg-white/5 backdrop-blur-[2px] transform skew-x-[-20deg] rounded 
-                        shadow-[0_8px_32px_rgba(31,41,55,0.5)] 
-                        after:absolute after:inset-0 after:bg-gradient-to-r 
-                        after:from-white/10 after:to-transparent after:rounded
-                        before:absolute before:inset-0 before:bg-blue-500/20 before:blur-[15px] before:rounded"
-                />
-                <h2 className="relative z-10 px-6 py-2.5 flex items-center gap-2 text-xl font-semibold text-white">
-                    <FaFileInvoice className="text-lg text-blue-400" />
-                    Liste des factures
-                </h2>
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#599AED]/10">
+                        <FaFileInvoice className="w-5 h-5 text-[#599AED]" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900">Liste des factures</h2>
+                        <p className="text-sm text-gray-500 mt-0.5">Historique des factures</p>
+                    </div>
+                </div>
             </div>
 
             {/* Search and Export */}
@@ -184,13 +210,13 @@ const OrdersList = ({ dateRange, storeId }) => {
                         placeholder="Rechercher..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-[#111827] border-0 rounded-lg text-gray-300 placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 pr-4 py-2 bg-[#F3F3F8] border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#599AED]"
                     />
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
                 <button 
                     onClick={exportToExcel}
-                    className="p-2 bg-[#111827] text-[#60A5FA] hover:text-[#3b82f6] rounded-lg transition-colors shrink-0"
+                    className="p-2 bg-[#F3F3F8] text-[#599AED] hover:bg-[#599AED] hover:text-white rounded-lg transition-colors shrink-0"
                 >
                     <FaFileExport size={20} />
                 </button>
@@ -207,55 +233,63 @@ const OrdersList = ({ dateRange, storeId }) => {
                         return (
                             <div 
                                 key={order.invoice_ref} 
-                                className={`${isExpanded ? 'bg-black' : 'bg-[#111827]'} rounded-lg overflow-hidden transition-all duration-300
-                                    ${isAvoir ? 'border border-[#f59e0b] shadow-[0_0_10px_rgba(245,158,11,0.3)] hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]' : ''}
-                                    ${!isAvoir && isUnpaid ? 'border border-[#ef4444] shadow-[0_0_10px_rgba(239,68,68,0.3)] hover:shadow-[0_0_15px_rgba(239,68,68,0.4)]' : ''}
+                                className={`
+                                    ${isExpanded ? 'bg-[#599AED]/30' : 
+                                      isAvoir ? 'bg-[#FF9900]/30' :  
+                                      isUnpaid ? 'bg-[#FF4444]/30' :  
+                                      'bg-[#F3F3F8]'
+                                    } 
+                                    rounded-lg overflow-hidden transition-all duration-300
+                                    border border-gray-200
+                                    ${isAvoir ? 'hover:border-[#FF9900]' : ''}
+                                    ${!isAvoir && isUnpaid ? 'hover:border-[#FF4444]' : ''}
                                 `}
                             >
                                 <div 
                                     className={`flex items-center justify-between p-4 cursor-pointer
                                         ${!isExpanded ? (
-                                            isAvoir ? 'hover:bg-[#f59e0b]/5' : 
-                                            isUnpaid ? 'hover:bg-[#ef4444]/5' : 
-                                            'hover:bg-[#1a2942]'
-                                        ) : ''}`}
+                                            isAvoir ? 'hover:bg-[#FF9900]/30' : 
+                                            isUnpaid ? 'hover:bg-[#FF4444]/30' : 
+                                            'hover:bg-[#599AED]/30'  // Increased opacity for hover
+                                        ) : (
+                                            isAvoir ? 'bg-[#FF9900]/30' : 
+                                            isUnpaid ? 'bg-[#FF4444]/30' : 
+                                            'bg-[#599AED]/30'  // Header matches the expanded content background
+                                        )}`}
                                     onClick={() => handleExpand(order.invoice_ref)}
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="flex flex-col">
-                                            <span className="font-medium text-gray-300">{order.invoice_ref}</span>
-                                            <span className="text-xs text-gray-500">{order.invoice_date}</span>
+                                            <span className="font-medium text-gray-900 text-xs md:text-base">{order.invoice_ref}</span>
+                                            <span className="text-[10px] md:text-xs text-gray-500">{order.invoice_date}</span>
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium text-gray-300">{order.client_name}</span>
-                                            <span className="text-xs text-gray-500">
-                                                {order.client_phone || 'N/A'}
+                                        <div className="flex flex-col max-w-[150px] md:max-w-none">
+                                            <span className="font-medium text-gray-900 text-xs md:text-base truncate">{order.client_name}</span>
+                                            <span className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1">
+                                                <FaPhone className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                                                <span className="truncate">{order.client_phone || 'N/A'}</span>
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-6">
+                                    <div className="flex items-center gap-2 md:gap-6">
                                         <div className="flex flex-col items-end">
-                                            <div className="flex items-center gap-2 md:flex-row flex-col">
-                                                <div className="flex items-center gap-2">
+                                            <div className="flex flex-col items-end gap-1">
+                                                <span className={`font-medium text-xs md:text-base ${isAvoir ? 'text-[#FF9900]' : 'text-gray-900'}`}>
+                                                    {order.total_invoice_amount} DH
+                                                </span>
+                                                <div className="flex items-center gap-1">
                                                     {isAvoir && (
-                                                        <span className="px-2 py-0.5 text-xs font-medium rounded-full 
-                                                            border border-[#f59e0b] text-[#f59e0b] bg-[#f59e0b]/10
-                                                            shadow-[0_0_10px_rgba(245,158,11,0.3)] hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]
-                                                            transition-shadow"
+                                                        <span className="px-1.5 md:px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full 
+                                                            bg-[#FF9900] text-white"
                                                         >
                                                             AVOIR
                                                         </span>
                                                     )}
-                                                    <span className={`font-medium ${isAvoir ? 'text-[#f59e0b]' : 'text-gray-300'}`}>
-                                                        {order.total_invoice_amount} DH
-                                                    </span>
-                                                </div>
-                                                <div className="md:inline-block">
                                                     {getPaymentStatus(order)}
                                                 </div>
                                             </div>
                                             {parseFloat(order.amount_unpaid.replace(/[^\d.-]/g, '')) > 0 && (
-                                                <div className="hidden md:block text-xs text-[#ef4444] mt-1">
+                                                <div className="text-[10px] md:text-xs text-[#ef4444] mt-1">
                                                     Reliquat: -{order.amount_unpaid} DH
                                                 </div>
                                             )}
@@ -264,91 +298,91 @@ const OrdersList = ({ dateRange, storeId }) => {
                                     </div>
                                 </div>
 
-                                {/* Invoice Details */}
-                                {expandedInvoice === order.invoice_ref && (
-                                    <div className={`border-t p-4 ${
-                                        isAvoir ? 'border-[#f59e0b]/20' : 
-                                        isUnpaid ? 'border-[#ef4444]/20' : 
-                                        'border-[#1F2937]'
-                                    }`}>
+                                {/* Order Details - Update the animation */}
+                                <Transition
+                                    show={expandedInvoice === order.invoice_ref}
+                                    enter="transition-all duration-300 ease-out"
+                                    enterFrom="transform scale-y-0 opacity-0 origin-top"
+                                    enterTo="transform scale-y-100 opacity-100 origin-top"
+                                    leave="transition-all duration-200 ease-in"
+                                    leaveFrom="transform scale-y-100 opacity-100 origin-top"
+                                    leaveTo="transform scale-y-0 opacity-0 origin-top"
+                                >
+                                    <div className={`
+                                        border-t border-gray-200 p-4 
+                                        ${isAvoir ? 'bg-[#FF9900]/30' : 
+                                          isUnpaid ? 'bg-[#FF4444]/30' : 
+                                          'bg-[#599AED]/30'}
+                                    `}>
                                         {/* Products Table */}
-                                        <table className="w-full">
+                                        <table className="w-full text-sm md:text-base">
                                             <thead>
-                                                <tr className="text-xs text-gray-400 uppercase">
-                                                    <th className="text-left py-2">Réf.</th>
+                                                <tr className="text-[10px] md:text-xs text-gray-500 uppercase">
+                                                    <th className="text-left py-2 hidden md:table-cell">Réf.</th>
                                                     <th className="text-left py-2">Produit</th>
                                                     <th className="text-right py-2">Qté</th>
-                                                    <th className="text-right py-2">Prix TTC</th>
+                                                    <th className="text-right py-2 min-w-[90px]">Prix TTC</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-[#1F2937]">
-                                                {order.items.map((item, index) => {
-                                                    const isDiscount = parseFloat(item.product_price_ttc.replace(/[^\d.-]/g, '')) < 0;
-                                                    const isAvoir = parseFloat(order.total_invoice_amount.replace(/[^\d.-]/g, '')) < 0;
-                                                    
-                                                    return (
-                                                        <tr key={index} className={`text-sm ${isDiscount ? 'bg-[#111827]' : ''}`}>
-                                                            <td className={`py-2 ${isAvoir ? 'text-[#f59e0b]' : isDiscount ? 'text-[#60A5FA]' : 'text-gray-400'}`}>
-                                                                {item.product_ref || '-'}
-                                                            </td>
-                                                            <td className={`py-2 ${isAvoir ? 'text-[#f59e0b]' : isDiscount ? 'text-[#60A5FA]' : 'text-gray-300'}`}>
-                                                                {item.product_ref ? (
-                                                                    item.product_label
-                                                                ) : (
-                                                                    <span className={`italic ${isAvoir ? 'text-[#f59e0b]' : isDiscount ? 'text-[#60A5FA]' : 'text-gray-300'}`}>
-                                                                        {item.invoice_description || item.product_label}
-                                                                    </span>
-                                                                )}
-                                                            </td>
-                                                            <td className={`py-2 text-right ${isAvoir ? 'text-[#f59e0b]' : isDiscount ? 'text-[#60A5FA]' : 'text-gray-300'}`}>
-                                                                {item.qty_sold}
-                                                            </td>
-                                                            <td className={`py-2 text-right ${isAvoir ? 'text-[#f59e0b]' : isDiscount ? 'text-[#60A5FA]' : 'text-gray-300'}`}>
-                                                                {item.product_price_ttc} DH
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
+                                            <tbody className="divide-y divide-gray-200">
+                                                {order.items.map((item, index) => (
+                                                    <tr key={index} className="text-xs md:text-sm">
+                                                        <td className={`py-2 text-gray-500 hidden md:table-cell`}>
+                                                            {item.product_ref || '-'}
+                                                        </td>
+                                                        <td className={`py-2 text-gray-900 pr-2`}>
+                                                            {item.product_ref ? (
+                                                                decodeHtmlEntities(item.product_label)
+                                                            ) : (
+                                                                <span className="italic text-gray-900">
+                                                                    {decodeHtmlEntities(item.invoice_description || item.product_label)}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td className={`py-2 text-right text-gray-900 px-2`}>
+                                                            {item.qty_sold}
+                                                        </td>
+                                                        <td className={`py-2 text-right text-gray-900 whitespace-nowrap`}>
+                                                            {item.product_price_ttc} DH
+                                                        </td>
+                                                    </tr>
+                                                ))}
                                             </tbody>
                                         </table>
-                                        
+
                                         {/* Payment Details and Notes */}
-                                        <div className="mt-4 pt-4 border-t border-[#1F2937] space-y-3">
+                                        <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
                                             {order.payment_details && (
                                                 <div className="text-sm">
-                                                    <span className="text-gray-400">Paiements:</span>
+                                                    <span className="text-gray-500">Paiements:</span>
                                                     <div className="flex flex-wrap gap-2 mt-2">
                                                         {order.payment_details.split(', ').map((payment, idx) => {
                                                             const [method, amount, date] = payment.split(': ');
                                                             if (!method || !amount) return null;
                                                             
-                                                            const paymentInfo = PAYMENT_ICONS[method] || { icon: FaMoneyBillWave, color: '#60A5FA' };
+                                                            const paymentInfo = {
+                                                                'Carte bancaire': { icon: FaCreditCard, color: '#22DD66' },
+                                                                'Espèce': { icon: FaMoneyBillWave, color: '#599AED' },
+                                                                'Virement': { icon: FaUniversity, color: '#FF9900' },
+                                                                'Chèque': { icon: FaMoneyCheck, color: '#9933FF' }
+                                                            }[method] || { icon: FaMoneyBillWave, color: '#599AED' };
+                                                            
                                                             const PaymentIcon = paymentInfo.icon;
                                                             
                                                             return (
                                                                 <div 
                                                                     key={idx}
-                                                                    className="flex items-center gap-2 px-3 py-1.5 rounded-full border transition-shadow"
+                                                                    className="flex items-center gap-2 px-3 py-1.5 rounded-full"
                                                                     style={{
-                                                                        borderColor: paymentInfo.color,
-                                                                        backgroundColor: `${paymentInfo.color}10`,
-                                                                        boxShadow: `0 0 10px ${paymentInfo.color}30`
+                                                                        backgroundColor: paymentInfo.color,
+                                                                        color: 'white'
                                                                     }}
                                                                 >
-                                                                    <PaymentIcon 
-                                                                        className="w-4 h-4"
-                                                                        style={{ color: paymentInfo.color }}
-                                                                    />
-                                                                    <span style={{ color: paymentInfo.color }}>
-                                                                        {method}
-                                                                    </span>
-                                                                    {amount && (
-                                                                        <span style={{ color: paymentInfo.color }}>
-                                                                            {amount}
-                                                                        </span>
-                                                                    )}
+                                                                    <PaymentIcon className="w-4 h-4 text-white" />
+                                                                    <span>{method}</span>
+                                                                    {amount && <span>{amount}</span>}
                                                                     {date && (
-                                                                        <span className="text-xs text-gray-400">
+                                                                        <span className="text-xs text-white/80">
                                                                             ({date})
                                                                         </span>
                                                                     )}
@@ -358,46 +392,43 @@ const OrdersList = ({ dateRange, storeId }) => {
                                                     </div>
                                                 </div>
                                             )}
-                                            {parseFloat(order.amount_unpaid.replace(/[^\d.-]/g, '')) > 0 && 
-                                             parseFloat(order.total_invoice_amount.replace(/[^\d.-]/g, '')) > 0 && (
+                                            {parseFloat(order.amount_unpaid.replace(/[^\d.-]/g, '')) > 0 && (
                                                 <div className="text-sm flex items-center gap-2">
-                                                    <div 
-                                                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#ef4444] bg-[#ef4444]/10 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
-                                                    >
-                                                        <span className="text-[#ef4444]">Reliquat:</span>
-                                                        <span className="text-[#ef4444]">-{order.amount_unpaid} DH</span>
+                                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FF4444] text-white">
+                                                        <span>Reliquat:</span>
+                                                        <span>-{order.amount_unpaid} DH</span>
                                                     </div>
                                                 </div>
                                             )}
                                             {order.private_note && (
                                                 <div className="text-sm">
-                                                    <span className="text-gray-400">Notes:</span>
-                                                    <p className="text-gray-300 mt-1">{order.private_note}</p>
+                                                    <span className="text-gray-500">Notes:</span>
+                                                    <p className="text-gray-900 mt-1">{order.private_note}</p>
                                                 </div>
                                             )}
                                         </div>
 
                                         {/* Footer */}
-                                        <div className="mt-4 pt-4 border-t border-[#1F2937] flex justify-between items-center">
-                                            <div className="text-sm text-gray-400 flex items-center gap-4">
+                                        <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+                                            <div className="text-sm text-gray-500 flex items-center gap-4">
                                                 <div>
-                                                    Commercial: <span className="text-gray-300">{order.commercial_name}</span>
+                                                    Commercial: <span className="text-gray-900">{order.commercial_name}</span>
                                                 </div>
                                                 <div>
-                                                    ICE: <span className="text-gray-300">{order.client_ice || 'N/A'}</span>
+                                                    ICE: <span className="text-gray-900">{order.client_ice || 'N/A'}</span>
                                                 </div>
                                             </div>
                                             <a 
                                                 href={order.pdf_link}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-blue-500 hover:text-blue-400"
+                                                className="text-[#599AED] hover:text-[#4080d4]"
                                             >
                                                 <i className="icon-file-pdf-regular text-lg" />
                                             </a>
                                         </div>
                                     </div>
-                                )}
+                                </Transition>
                             </div>
                         );
                     })}

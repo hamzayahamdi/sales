@@ -269,6 +269,29 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
         fetchData();
     }, [storeId, period.value]);
 
+    const formatDateWithDay = (dateStr) => {
+        try {
+            // Convert DD/MM format to a valid date string with current year
+            const [day, month] = dateStr.split('/');
+            const currentYear = dayjs().year();
+            // Ensure month and day are properly padded with zeros
+            const paddedMonth = month.padStart(2, '0');
+            const paddedDay = day.padStart(2, '0');
+            const date = dayjs(`${currentYear}-${paddedMonth}-${paddedDay}`);
+            
+            // Check if date is valid before formatting
+            if (date.isValid()) {
+                // Format to show "Vendredi 03/11" (Friday 03/11)
+                return date.format('dddd DD/MM');
+            }
+            // Return original string if date is invalid
+            return dateStr;
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return dateStr;
+        }
+    };
+
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             let displayLabel = label;
@@ -276,12 +299,15 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                 const weekNum = parseInt(label.substring(1));
                 const { start, end } = getWeekDates(weekNum);
                 displayLabel = `${label} (${start} → ${end})`;
+            } else if (period?.value === 'jours') {
+                // Only format for daily view
+                displayLabel = formatDateWithDay(label);
             }
 
             return (
-                <div className="bg-[#1F2937] p-3 shadow-lg rounded-lg border border-[#374151]">
-                    <p className="text-sm text-gray-300">{displayLabel}</p>
-                    <p className="text-lg font-bold text-white">
+                <div className="bg-white p-3 shadow-lg rounded-lg border border-gray-200">
+                    <p className="text-sm text-gray-600">{displayLabel}</p>
+                    <p className="text-lg font-bold text-gray-900">
                         {new Intl.NumberFormat('en-US').format(payload[0].value)} DH
                     </p>
                 </div>
@@ -292,15 +318,15 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-[#1F2937] shadow-lg rounded-xl">
-                <h2 className="text-xl font-semibold mb-4 text-gray-300">CA Analytics</h2>
+            <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">CA Analytics</h2>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="animate-pulse space-y-4 w-full">
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
-                        <div className="h-10 bg-[#111827] rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+                        <div className="h-10 bg-gray-100 rounded w-full"></div>
                     </div>
                 </div>
             </div>
@@ -308,22 +334,18 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
     }
 
     return (
-        <div className="flex flex-col h-full p-4 xs:p-5 bg-[#1F2937] shadow-lg rounded-xl">
+        <div className="flex flex-col h-full p-4 xs:p-5 bg-white shadow-lg rounded-xl">
             {/* Title and Period Selector */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
                 {/* Title */}
-                <div className="relative">
-                    <div 
-                        className="absolute inset-0 bg-white/5 backdrop-blur-[2px] transform skew-x-[-20deg] rounded 
-                            shadow-[0_8px_32px_rgba(31,41,55,0.5)] 
-                            after:absolute after:inset-0 after:bg-gradient-to-r 
-                            after:from-white/10 after:to-transparent after:rounded
-                            before:absolute before:inset-0 before:bg-blue-500/20 before:blur-[15px] before:rounded"
-                    />
-                    <h2 className="relative z-10 px-6 py-2.5 flex items-center gap-2 text-xl font-semibold text-white">
-                        <FaChartArea className="text-lg text-blue-400" />
-                        CA Analytics
-                    </h2>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#599AED]/10">
+                        <FaChartArea className="w-5 h-5 text-[#599AED]" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900">CA Analytics</h2>
+                        <p className="text-sm text-gray-500 mt-0.5">Vue d'ensemble des ventes</p>
+                    </div>
                 </div>
 
                 {/* Period Selector */}
@@ -334,33 +356,34 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                             onChange={(e) => setPeriod(PERIODS.find(p => p.value === e.target.value))}
                             sx={{
                                 height: '36px',
-                                backgroundColor: '#111827',
-                                color: '#E5E7EB',
+                                backgroundColor: '#599AED',
+                                color: '#ffffff',
                                 '& .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: '#374151',
+                                    border: 'none',
                                 },
-                                '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: '#4B5563',
+                                '&:hover': {
+                                    backgroundColor: '#4080d4',
                                 },
-                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: '#60A5FA',
+                                '&.Mui-focused': {
+                                    backgroundColor: '#4080d4',
                                 },
                                 '& .MuiSvgIcon-root': {
-                                    color: '#9CA3AF',
+                                    color: '#ffffff',
                                 }
                             }}
                             MenuProps={{
                                 PaperProps: {
                                     sx: {
-                                        backgroundColor: '#111827',
-                                        border: '1px solid #374151',
+                                        backgroundColor: '#599AED',
+                                        border: 'none',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06)',
                                         '& .MuiMenuItem-root': {
-                                            color: '#E5E7EB',
+                                            color: '#ffffff',
                                             '&:hover': {
-                                                backgroundColor: '#1F2937',
+                                                backgroundColor: '#4080d4',
                                             },
                                             '&.Mui-selected': {
-                                                backgroundColor: '#374151',
+                                                backgroundColor: '#4080d4',
                                             }
                                         }
                                     }
@@ -395,35 +418,69 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                     >
                         <defs>
                             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#60A5FA" stopOpacity={1}/>
-                                <stop offset="100%" stopColor="#60A5FA" stopOpacity={0.6}/>
+                                <stop offset="0%" stopColor="#599AED" stopOpacity={1}/>
+                                <stop offset="100%" stopColor="#599AED" stopOpacity={0.6}/>
                             </linearGradient>
                         </defs>
                         <CartesianGrid 
                             strokeDasharray="3 3" 
                             vertical={false}
-                            stroke="#374151"
+                            stroke="#E5E7EB"
                         />
                         <XAxis 
                             dataKey="date" 
                             tickLine={false}
                             axisLine={false}
-                            tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                            dy={10}
+                            tick={(props) => {
+                                const { x, y, payload } = props;
+                                return (
+                                    <g transform={`translate(${x},${y})`}>
+                                        <text 
+                                            x={0} 
+                                            y={0} 
+                                            dy={16} 
+                                            textAnchor="middle" 
+                                            style={{ 
+                                                fill: '#000000',
+                                                fontWeight: '500',
+                                                fontSize: '12px'
+                                            }}
+                                        >
+                                            {payload.value}
+                                        </text>
+                                    </g>
+                                );
+                            }}
                         />
                         <YAxis 
                             tickLine={false}
                             axisLine={false}
-                            tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                            tickFormatter={(value) => new Intl.NumberFormat('fr-FR', {
-                                notation: 'compact',
-                                compactDisplay: 'short'
-                            }).format(value)}
-                            dx={-10}
+                            tick={(props) => {
+                                const { x, y, payload } = props;
+                                return (
+                                    <g transform={`translate(${x},${y})`}>
+                                        <text 
+                                            x={-10} 
+                                            y={0} 
+                                            textAnchor="end" 
+                                            style={{ 
+                                                fill: '#000000',
+                                                fontWeight: '500',
+                                                fontSize: '12px'
+                                            }}
+                                        >
+                                            {new Intl.NumberFormat('fr-FR', {
+                                                notation: 'compact',
+                                                compactDisplay: 'short'
+                                            }).format(payload.value)}
+                                        </text>
+                                    </g>
+                                );
+                            }}
                         />
                         <Tooltip 
                             content={<CustomTooltip />}
-                            cursor={{ fill: 'rgba(96, 165, 250, 0.1)' }}
+                            cursor={{ fill: 'rgba(89, 154, 237, 0.1)' }}
                         />
                         <Bar
                             dataKey="value"

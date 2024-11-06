@@ -16,6 +16,7 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@headlessui/react": "^2.2.0",
+    "@heroicons/react": "^2.1.5",
     "@loadable/component": "^5.15.3",
     "@mui/base": "^5.0.0-alpha.114",
     "@mui/material": "^5.16.7",

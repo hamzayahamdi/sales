@@ -19,8 +19,8 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
             valuePrefix: 'DH',
             data: [],
             type: 'primary',
-            bgColor: 'bg-[#26364f]',
-            iconBg: 'bg-[#2e4265]'
+            bgColor: 'bg-white',
+            iconBg: 'bg-[#F3F3F8]'
         },
         {
             title: 'TOTAL ENCAISSÉ',
@@ -29,8 +29,8 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
             valuePrefix: 'DH',
             data: [],
             type: 'primary',
-            bgColor: 'bg-[#1F2937]',
-            iconBg: 'bg-[#374151]'
+            bgColor: 'bg-white',
+            iconBg: 'bg-[#F3F3F8]'
         },
         {
             title: 'Reliquats',
@@ -39,8 +39,8 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
             valuePrefix: 'DH',
             data: [],
             type: 'primary',
-            bgColor: 'bg-[#1F2937]',
-            iconBg: 'bg-[#374151]'
+            bgColor: 'bg-white',
+            iconBg: 'bg-[#F3F3F8]'
         },
         {
             title: 'TOTAL CARTE BANCAIRE',
@@ -48,8 +48,8 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
             value: 0,
             valuePrefix: 'DH',
             type: 'payment',
-            bgColor: 'bg-[#1F2937]',
-            iconBg: 'bg-[#374151]'
+            bgColor: 'bg-white',
+            iconBg: 'bg-[#F3F3F8]'
         },
         {
             title: 'TOTAL CHÈQUE',
@@ -57,8 +57,8 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
             value: 0,
             valuePrefix: 'DH',
             type: 'payment',
-            bgColor: 'bg-[#1F2937]',
-            iconBg: 'bg-[#374151]'
+            bgColor: 'bg-white',
+            iconBg: 'bg-[#F3F3F8]'
         },
         {
             title: 'TOTAL ESPÈCE',
@@ -66,8 +66,8 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
             value: 0,
             valuePrefix: 'DH',
             type: 'payment',
-            bgColor: 'bg-[#1F2937]',
-            iconBg: 'bg-[#374151]'
+            bgColor: 'bg-white',
+            iconBg: 'bg-[#F3F3F8]'
         },
         {
             title: 'TOTAL VIREMENT',
@@ -75,8 +75,8 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
             value: 0,
             valuePrefix: 'DH',
             type: 'payment',
-            bgColor: 'bg-[#1F2937]',
-            iconBg: 'bg-[#374151]'
+            bgColor: 'bg-white',
+            iconBg: 'bg-[#F3F3F8]'
         }
     ]);
 
@@ -206,8 +206,8 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
                         <StatisticsCard 
                             data={{
                                 ...item,
-                                bgColor: 'bg-[#26364f]',
-                                iconBgColor: 'bg-[#2e4265]',
+                                bgColor: 'bg-white',
+                                iconBgColor: 'bg-[#F3F3F8]',
                                 valueClass: 'text-[32px]',
                                 prefixClass: 'text-[20px]'
                             }}
@@ -223,8 +223,8 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
                         <StatisticsCard 
                             data={{
                                 ...item,
-                                bgColor: 'bg-[#1f2937]',
-                                iconBgColor: 'bg-[#2e4265]'
+                                bgColor: 'bg-white',
+                                iconBgColor: 'bg-[#F3F3F8]'
                             }}
                         />
                     </div>
