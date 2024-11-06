@@ -3,7 +3,7 @@ import {Helmet} from 'react-helmet';
 import { MobileDateRangePicker } from '@mui/x-date-pickers-pro/MobileDateRangePicker';
 import { SingleInputDateRangeField } from '@mui/x-date-pickers-pro/SingleInputDateRangeField';
 import { Box, useMediaQuery, Tooltip } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import PropTypes from 'prop-types';
@@ -28,85 +28,6 @@ dayjs.extend(weekday);
 dayjs.extend(isoWeek);
 dayjs.locale('fr');
 
-const datePickerStyles = {
-    '& .MuiInputBase-root': {
-        height: '36px',
-        borderRadius: '4px',
-        backgroundColor: '#599AED',
-        border: 'none',
-        width: '100%',
-        minWidth: '185px',
-        maxWidth: '200px',
-        transition: 'all 0.2s ease',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        MozUserSelect: 'none',
-        msUserSelect: 'none',
-        '& .MuiInputBase-input': {
-            fontSize: '13px',
-            fontWeight: '500',
-            color: '#ffffff',
-            textAlign: 'center',
-            userSelect: 'none',
-            WebkitUserSelect: 'none',
-            MozUserSelect: 'none',
-            msUserSelect: 'none',
-            cursor: 'pointer',
-            caretColor: 'transparent',
-            '&::selection': {
-                backgroundColor: 'transparent',
-            },
-            '&::-moz-selection': {
-                backgroundColor: 'transparent',
-            },
-            '&::placeholder': {
-                textAlign: 'center',
-                color: '#9CA3AF'
-            }
-        }
-    },
-    '& .MuiPickersPopper-root': {
-        '& .MuiPickersLayout-root': {
-            backgroundColor: '#ffffff',
-            color: '#111827',
-            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        },
-        '& .MuiDayCalendar-weekDayLabel': {
-            color: '#6B7280',
-        },
-        '& .MuiPickersCalendarHeader-root': {
-            color: '#111827',
-            backgroundColor: '#ffffff',
-        },
-        '& .MuiPickersArrowSwitcher-button': {
-            color: '#111827',
-        },
-        '& .MuiDayCalendar-header': {
-            color: '#6B7280',
-        },
-        '& .MuiPickersDay-root': {
-            color: '#111827',
-            backgroundColor: '#ffffff',
-            '&:hover': {
-                backgroundColor: '#f3f4f6',
-            },
-            '&.Mui-selected': {
-                backgroundColor: '#60A5FA',
-                color: '#ffffff',
-                '&:hover': {
-                    backgroundColor: '#3b82f6',
-                },
-            },
-        },
-        '& .MuiDialogActions-root': {
-            backgroundColor: '#ffffff',
-            '& .MuiButton-root': {
-                color: '#3b82f6',
-            },
-        },
-    }
-};
-
 const shortcuts = [
     { label: "Aujourd'hui", value: "today" },
     { label: "Hier", value: "yesterday" },
@@ -127,6 +48,7 @@ const AppBar = ({
 }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const [tooltipOpen, setTooltipOpen] = useState(false);
     const [shortcutsOpen, setShortcutsOpen] = useState(false);
     const [calendarOpen, setCalendarOpen] = useState(false);
 
@@ -146,11 +68,6 @@ const AppBar = ({
             const formattedRange = `${newValue[0].format('DD/MM/YYYY')} - ${newValue[1].format('DD/MM/YYYY')}`;
             onDateRangeChange(formattedRange);
             updateSelectedShortcut(newValue[0], newValue[1]);
-            setCalendarOpen(false);
-            setShortcutsOpen(false);
-            setTimeout(() => {
-                setShortcutsOpen(false);
-            }, 100);
         }
     };
 
@@ -194,7 +111,6 @@ const AppBar = ({
         }
     };
 
-    // Add a new handler for when the date picker opens
     const handleDatePickerOpen = () => {
         setShortcutsOpen(false);
         setCalendarOpen(true);
@@ -215,6 +131,209 @@ const AppBar = ({
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [shortcutsOpen]);
+
+    // Keep the datePickerStyles constant as it is for the input styling
+
+    const datePickerStyles = {
+        '& .MuiInputBase-root': {
+            height: '36px',
+            borderRadius: '4px',
+            backgroundColor: '#599AED',
+            border: 'none',
+            width: '100%',
+            minWidth: '185px',
+            maxWidth: '200px',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none',
+            '& fieldset': {
+                border: 'none'
+            },
+            '&:hover fieldset': {
+                border: 'none'
+            },
+            '&.Mui-focused fieldset': {
+                border: 'none'
+            },
+            '& .MuiInputBase-input': {
+                fontSize: '13px',
+                fontWeight: '500',
+                color: '#ffffff',
+                textAlign: 'center',
+                cursor: 'pointer',
+                caretColor: 'transparent',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
+                '&::selection': {
+                    backgroundColor: 'transparent',
+                },
+                '&::-moz-selection': {
+                    backgroundColor: 'transparent',
+                }
+            }
+        }
+    };
+
+    // Add a simplified theme that only styles the calendar
+    const datePickerTheme = createTheme({
+        components: {
+            MuiDialog: {
+                styleOverrides: {
+                    paper: {
+                        backgroundColor: '#ffffff',
+                        borderRadius: '12px',
+                        overflow: 'hidden'
+                    }
+                }
+            },
+            MuiPickersLayout: {
+                styleOverrides: {
+                    root: {
+                        '& .MuiPickersCalendarHeader-label': {
+                            color: '#5899ED'
+                        },
+                        '& .MuiPickersArrowSwitcher-button': {
+                            color: '#5899ED'
+                        },
+                        '& .MuiDayCalendar-weekDayLabel': {
+                            color: '#5899ED'
+                        },
+                        '& .MuiPickersDay-root': {
+                            color: '#5899ED'
+                        },
+                        '& .MuiDialogActions-root': {
+                            backgroundColor: '#5899ED',
+                            '& .MuiButton-root': {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                },
+                defaultProps: {
+                    localeText: {
+                        cancelButtonLabel: 'Annuler',
+                        okButtonLabel: 'Valider',
+                        clearButtonLabel: 'Effacer',
+                        todayButtonLabel: "Aujourd'hui",
+                        start: 'Début',
+                        end: 'Fin',
+                        clockLabelText: 'Sélectionnez l\'heure',
+                        hoursClockNumberText: 'heures',
+                        minutesClockNumberText: 'minutes',
+                        secondsClockNumberText: 'secondes',
+                    }
+                }
+            },
+            MuiPickersToolbar: {
+                styleOverrides: {
+                    root: {
+                        backgroundColor: '#5899ED',
+                        color: '#ffffff',
+                        padding: '16px 24px',
+                        '& .MuiTypography-root': {
+                            color: '#ffffff'
+                        },
+                        '& .MuiPickersToolbar-penIconButton': {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                defaultProps: {
+                    localeText: {
+                        dateRangePickerToolbarTitle: 'Sélectionner la période',
+                        datePickerToolbarTitle: 'Sélectionner les dates',
+                        timePickerToolbarTitle: "Sélectionner l'heure"
+                    }
+                }
+            },
+            MuiDateRangePickerToolbar: {
+                styleOverrides: {
+                    root: {
+                        backgroundColor: '#5899ED',
+                        '& .MuiTypography-root': {
+                            color: '#ffffff'
+                        },
+                        '& .MuiDateRangePickerToolbar-container': {
+                            '& .MuiTypography-root': {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            },
+            MuiPickersDay: {
+                styleOverrides: {
+                    root: {
+                        backgroundColor: 'transparent',
+                        color: '#5899ED',
+                        '&:hover': {
+                            backgroundColor: '#5899ED20'
+                        },
+                        '&.Mui-selected': {
+                            backgroundColor: '#5899ED',
+                            color: '#ffffff',
+                            '&:hover': {
+                                backgroundColor: '#5899ED'
+                            }
+                        },
+                        '&.MuiPickersDay-today': {
+                            borderColor: '#5899ED',
+                            backgroundColor: 'transparent'
+                        }
+                    }
+                }
+            },
+            MuiDateRangePickerDay: {
+                styleOverrides: {
+                    root: {
+                        backgroundColor: 'transparent',
+                        '& .MuiDateRangePickerDay-rangeIntervalPreview': {
+                            backgroundColor: '#5899ED20'
+                        },
+                        '& .MuiDateRangePickerDay-day': {
+                            backgroundColor: 'transparent',
+                            '&.Mui-selected': {
+                                backgroundColor: '#5899ED',
+                                color: '#ffffff',
+                                '&:hover': {
+                                    backgroundColor: '#5899ED'
+                                }
+                            },
+                            '&.MuiDateRangePickerDay-dayInsideRangeInterval': {
+                                backgroundColor: '#5899ED',
+                                color: '#ffffff',
+                                '&:hover': {
+                                    backgroundColor: '#5899ED'
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            MuiButton: {
+                styleOverrides: {
+                    root: {
+                        '&:hover': {
+                            backgroundColor: '#ffffff20'
+                        }
+                    }
+                }
+            },
+            MuiPickersCalendarHeader: {
+                defaultProps: {
+                    localeText: {
+                        monthNames: [
+                            'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                            'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+                        ],
+                    }
+                }
+            }
+        }
+    });
 
     return (
         <>
@@ -243,45 +362,38 @@ const AppBar = ({
                         )}
 
                         <div className="relative date-picker-container flex items-center">
-                            <Box sx={datePickerStyles} className="flex-1">
-                                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="fr">
-                                    <MobileDateRangePicker
-                                        value={parseDateRange()}
-                                        onChange={handleDateChange}
-                                        onOpen={() => {
-                                            setShortcutsOpen(false);
-                                            setCalendarOpen(true);
-                                        }}
-                                        onClose={() => setCalendarOpen(false)}
-                                        open={calendarOpen}
-                                        closeOnSelect={true}
-                                        shortcuts={shortcuts}
-                                        localeText={{ 
-                                            start: 'Début', 
-                                            end: 'Fin',
-                                            calendarWeekNumberText: 'Semaine',
-                                            previousMonth: 'Mois précédent',
-                                            nextMonth: 'Mois suivant'
-                                        }}
-                                        slots={{
-                                            field: SingleInputDateRangeField,
-                                            actionBar: () => null,
-                                        }}
-                                        slotProps={{
-                                            textField: { size: 'small' },
-                                            field: { readOnly: true },
-                                            layout: {
-                                                sx: {
-                                                    bgcolor: '#ffffff',
-                                                    color: '#111827',
-                                                    '& .MuiPickersLayout-contentWrapper': {
-                                                        bgcolor: '#ffffff',
-                                                    },
-                                                },
-                                            },
-                                        }}
-                                    />
-                                </LocalizationProvider>
+                            <Box sx={datePickerStyles}>
+                                <ThemeProvider theme={datePickerTheme}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="fr">
+                                        <MobileDateRangePicker
+                                            value={parseDateRange()}
+                                            onChange={handleDateChange}
+                                            slots={{
+                                                field: SingleInputDateRangeField
+                                            }}
+                                            slotProps={{
+                                                textField: { size: 'small' },
+                                                field: { readOnly: true }
+                                            }}
+                                            localeText={{ 
+                                                start: 'Début',
+                                                end: 'Fin',
+                                                cancel: 'Annuler',
+                                                ok: 'Valider',
+                                                today: "Aujourd'hui",
+                                                calendarWeekNumberHeaderText: 'Semaine',
+                                                calendarWeekNumberText: n => `S${n}`,
+                                                clockLabelText: 'Sélectionnez l\'heure',
+                                                hoursClockNumberText: 'heures',
+                                                minutesClockNumberText: 'minutes',
+                                                secondsClockNumberText: 'secondes',
+                                                selectedRangeStartLabel: 'Début de période',
+                                                selectedRangeEndLabel: 'Fin de période',
+                                                dateRangePickerToolbarTitle: 'Sélectionner la période'
+                                            }}
+                                        />
+                                    </LocalizationProvider>
+                                </ThemeProvider>
                             </Box>
 
                             {/* Dropdown Button - Updated styling */}
