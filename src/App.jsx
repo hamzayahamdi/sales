@@ -188,6 +188,28 @@ const App = () => {
         document.title = "Sales Analytics | Sketch Design";
     }, []);
 
+    // Add this style block at the top of your App component
+    const GlobalStyle = () => (
+        <style>
+            {`
+                input[type="text"],
+                input[type="number"],
+                input[type="email"],
+                input[type="tel"],
+                input[type="password"],
+                input[type="search"],
+                select,
+                textarea {
+                    font-size: 16px !important;
+                    /* Prevent zoom on iOS */
+                    @supports (-webkit-touch-callout: none) {
+                        font-size: 16px !important;
+                    }
+                }
+            `}
+        </style>
+    );
+
     return (
         <HelmetProvider>
             <Helmet>
