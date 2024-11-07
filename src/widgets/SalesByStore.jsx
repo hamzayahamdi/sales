@@ -68,7 +68,7 @@ const SalesByStore = ({ dateRange, storeId }) => {
             formData.append('date_range', formattedDateRange);
             formData.append('store_id', storeId);
 
-            const response = await fetch('http://phpstack-937973-4538369.cloudwaysapps.com/fetch_sales_new.php', {
+            const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_sales_new.php', {
                 method: 'POST',
                 body: formData
             });
