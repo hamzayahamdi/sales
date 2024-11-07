@@ -345,7 +345,7 @@ const AppBar = ({
                 />
             </Helmet>
             <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200" style={headerStyles}>
-                <div className="flex flex-col w-full max-w-[1920px] mx-auto !bg-white">
+                <div className="flex flex-col w-full !bg-white">
                     <div className="flex items-center justify-between px-4 py-3 !bg-white">
                         <img 
                             src={salesLogo} 

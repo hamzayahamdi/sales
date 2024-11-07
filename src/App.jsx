@@ -17,7 +17,6 @@ import ReactGA from 'react-ga4';
 import { ToastContainer } from 'react-toastify';
 
 // Contexts
-import { SidebarProvider } from '@contexts/sidebarContext';
 import { ThemeProvider } from 'styled-components';
 import { useTheme } from '@contexts/themeContext';
 
@@ -26,7 +25,6 @@ import useAuthRoute from '@hooks/useAuthRoute';
 
 // Components
 import ScrollToTop from '@components/ScrollToTop';
-import Sidebar from '@components/Sidebar';
 import Loader from '@components/Loader';
 import ThemeStyles from '@styles/theme';
 
@@ -223,46 +221,40 @@ const App = () => {
                     localeText={{ start: 'Début', end: 'Fin' }}
                 >
                     <ThemeProvider theme={{ theme: 'dark' }}>
-                        <SidebarProvider>
-                            <ThemeStyles />
-                            <ToastContainer theme="dark" autoClose={2000} />
-                            <ScrollToTop />
-                            <div className={`app ${isAuthRoute ? 'fluid' : ''} bg-[#111827]`}>
-                                {!isAuthRoute && <Sidebar />}
-                                <div className={`flex flex-col col-start-2 flex-1 ${isAuthRoute ? 'max-w-[650px] w-full' : ''}`}>
-                                    <Suspense fallback={<Loader />}>
-                                        <Routes>
-                                            <Route path="/login" element={<Login />} />
-                                            <Route 
-                                                path="/dashboard" 
-                                                element={
-                                                    <ProtectedRoute>
-                                                        <DashboardA />
-                                                    </ProtectedRoute>
-                                                } 
-                                            />
-                                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                            <Route path="/dashboard-b" element={<DashboardB />} />
-                                            <Route path="/dashboard-c" element={<DashboardC />} />
-                                            <Route path="/dashboard-d" element={<DashboardD />} />
-                                            <Route path="/products" element={<Products />} />
-                                            <Route path="/product" element={<Product />} />
-                                            <Route path="/create-product" element={<CreateProduct />} />
-                                            <Route path="/orders" element={<Orders />} />
-                                            <Route path="/order-details" element={<OrderDetails />} />
-                                            <Route path="/invoice" element={<Invoice />} />
-                                            <Route path="/sales" element={<Sales />} />
-                                            <Route path="/reviews" element={<Reviews />} />
-                                            <Route path="/settings" element={<Settings />} />
-                                            <Route path="/sign-in" element={<SignIn />} />
-                                            <Route path="/sign-up" element={<SignUp />} />
-                                            <Route path="*" element={<Navigate to="/404" />} />
-                                            <Route path="/404" element={<PageNotFound />} />
-                                        </Routes>
-                                    </Suspense>
-                                </div>
-                            </div>
-                        </SidebarProvider>
+                        <ToastContainer theme="dark" autoClose={2000} />
+                        <ScrollToTop />
+                        <div className="min-h-screen bg-[#111827]">
+                            <Suspense fallback={<Loader />}>
+                                <Routes>
+                                    <Route path="/login" element={<Login />} />
+                                    <Route 
+                                        path="/dashboard" 
+                                        element={
+                                            <ProtectedRoute>
+                                                <DashboardA />
+                                            </ProtectedRoute>
+                                        } 
+                                    />
+                                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                    <Route path="/dashboard-b" element={<DashboardB />} />
+                                    <Route path="/dashboard-c" element={<DashboardC />} />
+                                    <Route path="/dashboard-d" element={<DashboardD />} />
+                                    <Route path="/products" element={<Products />} />
+                                    <Route path="/product" element={<Product />} />
+                                    <Route path="/create-product" element={<CreateProduct />} />
+                                    <Route path="/orders" element={<Orders />} />
+                                    <Route path="/order-details" element={<OrderDetails />} />
+                                    <Route path="/invoice" element={<Invoice />} />
+                                    <Route path="/sales" element={<Sales />} />
+                                    <Route path="/reviews" element={<Reviews />} />
+                                    <Route path="/settings" element={<Settings />} />
+                                    <Route path="/sign-in" element={<SignIn />} />
+                                    <Route path="/sign-up" element={<SignUp />} />
+                                    <Route path="*" element={<Navigate to="/404" />} />
+                                    <Route path="/404" element={<PageNotFound />} />
+                                </Routes>
+                            </Suspense>
+                        </div>
                     </ThemeProvider>
                 </LocalizationProvider>
             </MuiThemeProvider>

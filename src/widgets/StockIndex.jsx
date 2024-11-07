@@ -13,72 +13,26 @@ const CATEGORIES = [
     'Luminaire-Luxalight', 'Couettes', 'Matelas', 'Oreillers', 'Tapis'
 ];
 
-const SearchAutocomplete = ({ searchTerm, setSearchTerm }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [suggestions, setSuggestions] = useState([]);
-
-    useEffect(() => {
-        if (searchTerm.length >= 1) {
-            const filtered = CATEGORIES.filter(cat => 
-                cat.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            setSuggestions(filtered);
-            setIsOpen(!CATEGORIES.includes(searchTerm));
-        } else {
-            setSuggestions([]);
-            setIsOpen(false);
-        }
-    }, [searchTerm]);
-
-    return (
-        <div className="relative flex-1">
-            <div className="relative">
-                <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onFocus={() => {
-                        if (searchTerm.length >= 1 && !CATEGORIES.includes(searchTerm)) {
-                            setIsOpen(true);
-                        }
-                    }}
-                    placeholder="Rechercher par nom, référence ou catégorie..."
-                    className="w-full pl-10 pr-4 py-2 bg-[#F3F3F8] border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#599AED]"
-                />
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                {searchTerm && (
-                    <button
-                        onClick={() => {
-                            setSearchTerm('');
-                            setIsOpen(false);
-                        }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                        <FaTimes className="w-4 h-4" />
-                    </button>
-                )}
-            </div>
-
-            {/* Suggestions dropdown */}
-            {isOpen && suggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 py-1">
-                    {suggestions.map((suggestion, index) => (
-                        <button
-                            key={index}
-                            onClick={() => {
-                                setSearchTerm(suggestion);
-                                setIsOpen(false);
-                            }}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-[#F3F3F8] text-gray-700 hover:text-gray-900"
-                        >
-                            {suggestion}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
+const SearchInput = ({ searchTerm, setSearchTerm }) => (
+    <div className="relative flex-1">
+        <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Rechercher par nom, référence ou catégorie..."
+            className="w-full pl-10 pr-4 py-2 bg-[#F3F3F8] border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#599AED]"
+        />
+        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        {searchTerm && (
+            <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+                <FaTimes className="w-4 h-4" />
+            </button>
+        )}
+    </div>
+);
 
 const StockIndex = ({ storeId = 'all' }) => {
     const { width } = useWindowSize();
@@ -89,23 +43,14 @@ const StockIndex = ({ storeId = 'all' }) => {
     const fetchStockData = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`https://ratio.sketchdesign.ma/ratio/fetch_stock_days.php?store_id=${storeId}`);
+            const response = await fetch(
+                `https://ratio.sketchdesign.ma/ratio/fetch_stock_days.php?store_id=${storeId}`
+            );
             const data = await response.json();
             
             if (Array.isArray(data)) {
-                const formattedData = data
-                    .sort((a, b) => {
-                        if (a.days_in_stock === b.days_in_stock) {
-                            return b.price - a.price;
-                        }
-                        return b.days_in_stock - a.days_in_stock;
-                    })
-                    .map(item => ({
-                        ...item,
-                        current_stock: item.current_stock,
-                        sales_4_weeks: item.sales_4_weeks
-                    }));
-                setStockData(formattedData);
+                const uniqueData = Array.from(new Map(data.map(item => [item.ref, item])).values());
+                setStockData(uniqueData);
             }
         } catch (error) {
             console.error('Failed to fetch stock data:', error);
@@ -120,14 +65,34 @@ const StockIndex = ({ storeId = 'all' }) => {
     }, [storeId]);
 
     const filteredData = useMemo(() => {
-        if (!searchTerm) return stockData;
-        
-        return stockData.filter(item => 
-            item.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.category.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        let filtered = [...stockData];
+
+        if (searchTerm.trim()) {
+            const searchTerms = searchTerm.toLowerCase().trim().split(' ');
+            filtered = filtered.filter(item => 
+                searchTerms.every(term =>
+                    item.ref.toLowerCase().includes(term) ||
+                    item.name.toLowerCase().includes(term) ||
+                    item.category.toLowerCase().includes(term)
+                )
+            );
+        }
+
+        return filtered.sort((a, b) => {
+            if (a.days_in_stock === 999999 && b.days_in_stock !== 999999) return -1;
+            if (a.days_in_stock !== 999999 && b.days_in_stock === 999999) return 1;
+            
+            if (a.days_in_stock === 999999 && b.days_in_stock === 999999) {
+                return b.price - a.price;
+            }
+            
+            return b.days_in_stock - a.days_in_stock;
+        });
     }, [stockData, searchTerm]);
+
+    const handleSearchChange = (value) => {
+        setSearchTerm(value);
+    };
 
     const getStockStatus = (days) => {
         if (days === 999999) return (
@@ -308,11 +273,11 @@ const StockIndex = ({ storeId = 'all' }) => {
                 </div>
             </div>
 
-            {/* Search and Export */}
+            {/* Simplified search and export section */}
             <div className="flex items-center gap-2 mb-4">
-                <SearchAutocomplete 
+                <SearchInput 
                     searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
+                    setSearchTerm={handleSearchChange}
                 />
                 <button 
                     onClick={exportToExcel}
@@ -320,6 +285,11 @@ const StockIndex = ({ storeId = 'all' }) => {
                 >
                     <FaFileExport size={20} />
                 </button>
+            </div>
+
+            {/* Results count */}
+            <div className="mb-3 text-sm text-gray-500">
+                {filteredData.length} résultats trouvés
             </div>
 
             {/* Table */}
