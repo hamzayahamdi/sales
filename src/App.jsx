@@ -20,9 +20,6 @@ import { ToastContainer } from 'react-toastify';
 import { ThemeProvider } from 'styled-components';
 import { useTheme } from '@contexts/themeContext';
 
-// Hooks
-import useAuthRoute from '@hooks/useAuthRoute';
-
 // Components
 import ScrollToTop from '@components/ScrollToTop';
 import Loader from '@components/Loader';
@@ -40,25 +37,10 @@ import '@fonts/icomoon/icomoon.woff';
 
 // Lazy loaded components
 const DashboardA = lazy(() => import('@pages/DashboardA'));
-const DashboardB = lazy(() => import('@pages/DashboardB'));
-const DashboardC = lazy(() => import('@pages/DashboardC'));
-const DashboardD = lazy(() => import('@pages/DashboardD'));
-const Products = lazy(() => import('@pages/Products'));
-const Product = lazy(() => import('@pages/Product'));
-const CreateProduct = lazy(() => import('@pages/CreateProduct'));
-const Orders = lazy(() => import('@pages/Orders'));
-const OrderDetails = lazy(() => import('@pages/OrderDetails'));
-const Invoice = lazy(() => import('@pages/Invoice'));
-const Sales = lazy(() => import('@pages/Sales'));
-const Reviews = lazy(() => import('@pages/Reviews'));
-const Settings = lazy(() => import('@pages/Settings'));
-const SignIn = lazy(() => import('@pages/SignIn'));
-const SignUp = lazy(() => import('@pages/SignUp'));
 const PageNotFound = lazy(() => import('@pages/PageNotFound'));
 
 const App = () => {
-    const isAuthRoute = useAuthRoute();
-    const { theme: currentTheme } = useTheme();
+    const { theme } = useTheme();
 
     // Create MUI theme with dark mode
     const muiTheme = createTheme({
@@ -210,6 +192,7 @@ const App = () => {
 
     return (
         <HelmetProvider>
+            <GlobalStyle />
             <Helmet>
                 <title>Sales Analytics | Sketch Design</title>
                 <meta name="description" content="Sales Analytics Dashboard by Sketch Design" />
@@ -221,6 +204,7 @@ const App = () => {
                     localeText={{ start: 'Début', end: 'Fin' }}
                 >
                     <ThemeProvider theme={{ theme: 'dark' }}>
+                        <ThemeStyles />
                         <ToastContainer theme="dark" autoClose={2000} />
                         <ScrollToTop />
                         <div className="min-h-screen bg-[#111827]">
@@ -236,20 +220,6 @@ const App = () => {
                                         } 
                                     />
                                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                    <Route path="/dashboard-b" element={<DashboardB />} />
-                                    <Route path="/dashboard-c" element={<DashboardC />} />
-                                    <Route path="/dashboard-d" element={<DashboardD />} />
-                                    <Route path="/products" element={<Products />} />
-                                    <Route path="/product" element={<Product />} />
-                                    <Route path="/create-product" element={<CreateProduct />} />
-                                    <Route path="/orders" element={<Orders />} />
-                                    <Route path="/order-details" element={<OrderDetails />} />
-                                    <Route path="/invoice" element={<Invoice />} />
-                                    <Route path="/sales" element={<Sales />} />
-                                    <Route path="/reviews" element={<Reviews />} />
-                                    <Route path="/settings" element={<Settings />} />
-                                    <Route path="/sign-in" element={<SignIn />} />
-                                    <Route path="/sign-up" element={<SignUp />} />
                                     <Route path="*" element={<Navigate to="/404" />} />
                                     <Route path="/404" element={<PageNotFound />} />
                                 </Routes>
