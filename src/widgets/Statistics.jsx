@@ -125,7 +125,7 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
                 formData.append('date_range', formattedDateRange);
                 formData.append('store_id', storeId);
 
-                const response = await fetch('https://sales.sketchdesign.ma/fetch_sales_new.php', {
+                const response = await fetch('http://phpstack-937973-4538369.cloudwaysapps.com/fetch_sales_new.php', {
                     method: 'POST',
                     body: formData
                 });

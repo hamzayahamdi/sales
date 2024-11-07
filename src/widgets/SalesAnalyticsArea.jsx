@@ -138,7 +138,7 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
             formData.append('daily_only', 'true');
             formData.append('period', period.value);
 
-            const response = await fetch('https://sales.sketchdesign.ma/fetch_sales_new.php', {
+            const response = await fetch('http://phpstack-937973-4538369.cloudwaysapps.com/fetch_sales_new.php', {
                 method: 'POST',
                 body: formData
             });
