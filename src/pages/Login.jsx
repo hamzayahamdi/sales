@@ -55,7 +55,7 @@ const Login = () => {
         navigate('/dashboard');
         
         // Original password check code (commented out)
-        /*
+        
         if (password === import.meta.env.VITE_MASTER_PASSWORD) {
             localStorage.setItem('isAuthenticated', 'true');
             navigate('/dashboard');
@@ -63,7 +63,7 @@ const Login = () => {
             setError('Mot de passe incorrect');
             setPassword('');
         }
-        */
+        
     };
 
     return (
