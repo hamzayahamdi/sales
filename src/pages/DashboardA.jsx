@@ -111,20 +111,24 @@ const DashboardA = () => {
                                 />
                             </div>
                             
-                            {/* Second row - Bestsellers and Leaderboard */}
-                            <div className="flex flex-col md:flex-row gap-6">
-                                <div className="w-full md:w-1/2">
-                                    <TopSelling 
-                                        storeId={selectedStoreId}
-                                        dateRange={dateRange}
-                                    />
-                                </div>
-                                <div className="w-full md:w-1/2">
-                                    <StockIndex storeId={selectedStoreId} />
-                                </div>
+                            {/* Second row - Bestsellers and StockIndex */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <TopSelling 
+                                    storeId={selectedStoreId}
+                                    dateRange={dateRange}
+                                />
+                                <SalesTeamLeaderboard 
+                                    storeId={selectedStoreId}
+                                    dateRange={dateRange}
+                                />
                             </div>
 
-                            {/* Third row - Orders and Payments */}
+                            {/* Third row - Stock Index */}
+                            <div className="w-full">
+                                <StockIndex storeId={selectedStoreId} />
+                            </div>
+
+                            {/* Fourth row - Orders and Payments */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <OrdersList 
                                     storeId={selectedStoreId}
