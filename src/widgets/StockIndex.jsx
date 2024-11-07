@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import BasicTable from '@components/BasicTable';
 import { useWindowSize } from 'react-use';
-import { FaSearch, FaFileExport, FaBoxOpen, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaFileExport, FaTimes } from 'react-icons/fa';
+import { TbAlertSquareRoundedFilled } from 'react-icons/tb';
 import * as XLSX from 'xlsx';
 
 const CATEGORIES = [
@@ -289,12 +290,12 @@ const StockIndex = ({ storeId = 'all' }) => {
             {/* Title section */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100">
-                        <FaBoxOpen className="w-5 h-5 text-amber-600" />
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-red-500">
+                        <TbAlertSquareRoundedFilled className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-900">Rotation des Stocks</h2>
-                        <p className="text-sm text-gray-500 mt-0.5">Analyse des stocks dormants et priorités de vente</p>
+                        <h2 className="text-xl font-semibold text-gray-900">Produits en Alerte</h2>
+                        <p className="text-sm text-gray-500 mt-0.5">Produits à forte valeur avec rotation lente</p>
                     </div>
                 </div>
                 
