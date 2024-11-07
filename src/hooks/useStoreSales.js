@@ -33,7 +33,7 @@ const useStoreSales = (dateRange) => {
                 formDataAll.append('date_range', dateRange);
                 formDataAll.append('store_id', 'all');
 
-                const responseAll = await fetch('https://sales.sketchdesign.ma/fetch_sales_new.php', {
+                const responseAll = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_sales_new.php', {
                     method: 'POST',
                     body: formDataAll
                 });
@@ -47,7 +47,7 @@ const useStoreSales = (dateRange) => {
                     formData.append('date_range', dateRange);
                     formData.append('store_id', store.id);
 
-                    const response = await fetch('https://sales.sketchdesign.ma/fetch_sales_new.php', {
+                    const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_sales_new.php', {
                         method: 'POST',
                         body: formData
                     });
