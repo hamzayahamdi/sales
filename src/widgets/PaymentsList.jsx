@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useWindowSize } from 'react-use';
 import { FaCreditCard, FaMoneyBillWave, FaUniversity, FaMoneyCheck, FaSearch, FaFileExport } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
@@ -31,28 +31,22 @@ const PaymentsList = ({ dateRange, storeId }) => {
     const [payments, setPayments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [displayedPayments, setDisplayedPayments] = useState([]);
 
-    const getStoreLabel = (invoiceRef) => {
-        const storeName = getStoreFromInvoiceRef(invoiceRef);
-        if (!storeName) return null;
-
-        const store = STORE_COLORS[storeName];
-        if (!store) return null;
-
-        return (
-            <span 
-                className="px-2 py-0.5 text-xs font-medium rounded-full border transition-shadow"
-                style={{
-                    color: store.color,
-                    borderColor: store.color,
-                    backgroundColor: store.bg,
-                    boxShadow: `0 0 10px ${store.shadow}`,
-                }}
-            >
-                {storeName}
-            </span>
-        );
-    };
+    const filteredPayments = useMemo(() => {
+        if (!searchTerm) return payments;
+        
+        const searchLower = searchTerm.toLowerCase();
+        
+        return payments.filter(payment => {
+            const storeName = getStoreFromInvoiceRef(payment.invoice_ref);
+            
+            return payment.payment_ref?.toLowerCase().includes(searchLower) ||
+                   payment.invoice_ref?.toLowerCase().includes(searchLower) ||
+                   payment.payment_method?.toLowerCase().includes(searchLower) ||
+                   storeName?.toLowerCase().includes(searchLower);
+        });
+    }, [payments, searchTerm]);
 
     const fetchPayments = async () => {
         setIsLoading(true);
@@ -74,6 +68,7 @@ const PaymentsList = ({ dateRange, storeId }) => {
             
             if (data.payments) {
                 setPayments(data.payments);
+                setDisplayedPayments(data.payments);
             }
         } catch (error) {
             console.error('Failed to fetch payments:', error);
@@ -86,22 +81,6 @@ const PaymentsList = ({ dateRange, storeId }) => {
     useEffect(() => {
         fetchPayments();
     }, [storeId, dateRange]);
-
-    const filteredPayments = useMemo(() => {
-        if (!searchTerm) return payments;
-        
-        const searchLower = searchTerm.toLowerCase();
-        
-        return payments.filter(payment => {
-            // Get store name from invoice reference
-            const storeName = getStoreFromInvoiceRef(payment.invoice_ref);
-            
-            return payment.payment_ref?.toLowerCase().includes(searchLower) ||
-                   payment.invoice_ref?.toLowerCase().includes(searchLower) ||
-                   payment.payment_method?.toLowerCase().includes(searchLower) ||
-                   storeName?.toLowerCase().includes(searchLower); // Added store name search
-        });
-    }, [payments, searchTerm]);
 
     const exportToExcel = () => {
         // Prepare data for export

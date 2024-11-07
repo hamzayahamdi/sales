@@ -50,14 +50,20 @@ const Login = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Comment out password check for local testing
-       if (password === import.meta.env.VITE_MASTER_PASSWORD) {
+        // Bypass password check for testing
+        localStorage.setItem('isAuthenticated', 'true');
+        navigate('/dashboard');
+        
+        // Original password check code (commented out)
+        /*
+        if (password === import.meta.env.VITE_MASTER_PASSWORD) {
             localStorage.setItem('isAuthenticated', 'true');
             navigate('/dashboard');
         } else {
-             setError('Mot de passe incorrect');
-             setPassword('');
-         }
+            setError('Mot de passe incorrect');
+            setPassword('');
+        }
+        */
     };
 
     return (

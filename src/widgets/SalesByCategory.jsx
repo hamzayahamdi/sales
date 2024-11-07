@@ -32,7 +32,7 @@ const formatLargeNumber = (number) => {
     } else if (number >= 1000) {
         return `${(number / 1000).toFixed(1)}K`;
     }
-    return number.toString();
+    return number.toFixed(2);
 };
 
 const CustomTooltip = ({active, payload}) => {
@@ -40,7 +40,10 @@ const CustomTooltip = ({active, payload}) => {
         return (
             <div className="p-3">
                 <div className="text-white font-medium">
-                    {formatLargeNumber(payload[0].value)} DH
+                    {new Intl.NumberFormat('fr-FR', { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                    }).format(payload[0].value)} DH
                 </div>
             </div>
         );
@@ -72,7 +75,10 @@ const LegendItem = ({item, total}) => {
                 <p className="flex justify-between font-medium text-[15px] text-header">
                     <span className="truncate pr-2">{categoryName}</span>
                     <span className="whitespace-nowrap">
-                        ({percentage}%) {new Intl.NumberFormat('fr-FR').format(item.value)} DH
+                        ({percentage}%) {new Intl.NumberFormat('fr-FR', { 
+                            minimumFractionDigits: 2, 
+                            maximumFractionDigits: 2 
+                        }).format(item.value)} DH
                     </span>
                 </p>
                 <p className="uppercase text-xs text-label">
@@ -287,7 +293,10 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                     <p className="flex justify-between font-medium text-[15px] text-gray-900">
                                         <span className="truncate pr-2">{decodeHtmlEntities(item.category)}</span>
                                         <span className="whitespace-nowrap">
-                                            {new Intl.NumberFormat('en-US').format(item.value)} DH
+                                            {new Intl.NumberFormat('fr-FR', { 
+                                                minimumFractionDigits: 2, 
+                                                maximumFractionDigits: 2 
+                                            }).format(item.value)} DH
                                         </span>
                                     </p>
                                     <div className="flex items-center justify-between">

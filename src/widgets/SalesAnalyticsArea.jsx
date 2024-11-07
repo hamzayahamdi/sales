@@ -308,7 +308,10 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                 <div className="bg-white p-3 shadow-lg rounded-lg border border-gray-200">
                     <p className="text-sm text-gray-600">{displayLabel}</p>
                     <p className="text-lg font-bold text-gray-900">
-                        {new Intl.NumberFormat('en-US').format(payload[0].value)} DH
+                        {new Intl.NumberFormat('fr-FR', { 
+                            minimumFractionDigits: 2, 
+                            maximumFractionDigits: 2 
+                        }).format(payload[0].value)} DH
                     </p>
                 </div>
             );
@@ -391,10 +394,7 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                             }}
                         >
                             {PERIODS.map((option) => (
-                                <MenuItem 
-                                    key={option.value} 
-                                    value={option.value}
-                                >
+                                <MenuItem key={option.value} value={option.value}>
                                     {option.label}
                                 </MenuItem>
                             ))}
@@ -418,14 +418,15 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                     >
                         <defs>
                             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#599AED" stopOpacity={1}/>
-                                <stop offset="100%" stopColor="#599AED" stopOpacity={0.6}/>
+                                <stop offset="0%" stopColor="#599AED" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#599AED" stopOpacity={0.2}/>
                             </linearGradient>
                         </defs>
                         <CartesianGrid 
                             strokeDasharray="3 3" 
                             vertical={false}
                             stroke="#E5E7EB"
+                            opacity={0.5}
                         />
                         <XAxis 
                             dataKey="date" 
@@ -440,11 +441,7 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                                             y={0} 
                                             dy={16} 
                                             textAnchor="middle" 
-                                            style={{ 
-                                                fill: '#000000',
-                                                fontWeight: '500',
-                                                fontSize: '12px'
-                                            }}
+                                            className="text-xs font-medium fill-gray-600"
                                         >
                                             {payload.value}
                                         </text>
@@ -463,15 +460,13 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                                             x={-10} 
                                             y={0} 
                                             textAnchor="end" 
-                                            style={{ 
-                                                fill: '#000000',
-                                                fontWeight: '500',
-                                                fontSize: '12px'
-                                            }}
+                                            className="text-xs font-medium fill-gray-600"
                                         >
                                             {new Intl.NumberFormat('fr-FR', {
                                                 notation: 'compact',
-                                                compactDisplay: 'short'
+                                                compactDisplay: 'short',
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
                                             }).format(payload.value)}
                                         </text>
                                     </g>
@@ -480,7 +475,13 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                         />
                         <Tooltip 
                             content={<CustomTooltip />}
-                            cursor={{ fill: 'rgba(89, 154, 237, 0.1)' }}
+                            cursor={{ 
+                                fill: 'rgba(89, 154, 237, 0.05)',
+                                radius: [4, 4, 0, 0]
+                            }}
+                            wrapperStyle={{
+                                outline: 'none'
+                            }}
                         />
                         <Bar
                             dataKey="value"

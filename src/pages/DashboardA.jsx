@@ -11,6 +11,7 @@ import SalesTeamLeaderboard from '@widgets/SalesTeamLeaderboard';
 import SalesByStore from '@widgets/SalesByStore';
 import OrdersList from '@widgets/OrdersList';
 import PaymentsList from '@widgets/PaymentsList';
+import StockIndex from '@widgets/StockIndex';
 
 import useStoreSales from '@hooks/useStoreSales';
 
@@ -66,7 +67,7 @@ const DashboardA = () => {
                                 </div>
                             </div>
                             
-                            {/* Rest of the dashboard */}
+                            {/* Categories and Leaderboard */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <SalesByCategory 
                                     storeId={selectedStoreId}
@@ -78,12 +79,13 @@ const DashboardA = () => {
                                 />
                             </div>
 
-                            {/* Add TopSelling here */}
-                            <div className="mb-6">
+                            {/* TopSelling and StockIndex side by side */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <TopSelling 
                                     storeId={selectedStoreId}
                                     dateRange={dateRange}
                                 />
+                                <StockIndex storeId={selectedStoreId} />
                             </div>
                             
                             {/* Orders and Payments Section */}
@@ -111,17 +113,14 @@ const DashboardA = () => {
                             
                             {/* Second row - Bestsellers and Leaderboard */}
                             <div className="flex flex-col md:flex-row gap-6">
-                                <div className="w-full md:w-[60%]">
+                                <div className="w-full md:w-1/2">
                                     <TopSelling 
                                         storeId={selectedStoreId}
                                         dateRange={dateRange}
                                     />
                                 </div>
-                                <div className="w-full md:w-[40%]">
-                                    <SalesTeamLeaderboard 
-                                        storeId={selectedStoreId}
-                                        dateRange={dateRange}
-                                    />
+                                <div className="w-full md:w-1/2">
+                                    <StockIndex storeId={selectedStoreId} />
                                 </div>
                             </div>
 

@@ -23,42 +23,48 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
             label: 'Casablanca', 
             shortLabel: 'Casa',
             getStat: () => formatStat(storeSales?.['1'] || 0),
-            color: '#22C55E'
+            gradient: 'bg-gradient-to-r from-[#3B82F6] to-[#2563EB]',
+            cardGradient: 'bg-gradient-to-br from-[#3B82F6] via-[#2563EB] to-[#1D4ED8]'
         },
         { 
             value: '2', 
             label: 'Rabat',
             shortLabel: 'Rabat', 
             getStat: () => formatStat(storeSales?.['2'] || 0),
-            color: '#F97316'
+            gradient: 'bg-gradient-to-r from-[#22C55E] to-[#16A34A]',
+            cardGradient: 'bg-gradient-to-br from-[#22C55E]/100 via-[#16A34A]/50 to-[#15803D]/25'
         },
         { 
             value: '6', 
             label: 'Marrakech',
             shortLabel: 'Kech', 
             getStat: () => formatStat(storeSales?.['6'] || 0),
-            color: '#EC4899'
+            gradient: 'bg-gradient-to-r from-[#EF4444] to-[#DC2626]',
+            cardGradient: 'bg-gradient-to-br from-[#EF4444]/100 via-[#DC2626]/50 to-[#B91C1C]/25'
         },
         { 
             value: '5', 
             label: 'Tanger',
             shortLabel: 'Tanger', 
             getStat: () => formatStat(storeSales?.['5'] || 0),
-            color: '#8B5CF6'
+            gradient: 'bg-gradient-to-r from-[#F59E0B] to-[#D97706]',
+            cardGradient: 'bg-gradient-to-br from-[#F59E0B]/100 via-[#D97706]/50 to-[#B45309]/25'
         },
         { 
             value: '10', 
             label: 'Outlet',
             shortLabel: 'Outlet', 
             getStat: () => formatStat(storeSales?.['10'] || 0),
-            color: '#EAB308'
+            gradient: 'bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED]',
+            cardGradient: 'bg-gradient-to-br from-[#8B5CF6]/100 via-[#7C3AED]/50 to-[#6D28D9]/25'
         },
         { 
             value: 'all', 
             label: 'Tous les magasins',
             shortLabel: 'Tous', 
             getStat: () => formatStat(storeSales?.['all'] || 0),
-            color: '#06B6D4'
+            gradient: 'bg-gradient-to-r from-[#6366F1] to-[#4F46E5]',
+            cardGradient: 'bg-gradient-to-br from-[#6366F1] via-[#4F46E5] to-[#4338CA]'
         }
     ];
 
@@ -76,9 +82,9 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                 flex items-center gap-2.5 py-1.5 px-3 rounded-lg
                                 transition-all duration-500 ease-out
                                 ${isSelected ? 'min-w-[160px]' : 'min-w-[140px]'}
+                                ${isSelected ? store.cardGradient + ' text-white' : 'bg-[#f3f4f6]'}
                             `}
                             style={{
-                                backgroundColor: isSelected ? store.color : '#f3f4f6',
                                 transform: isSelected ? 'translateY(-1px) scale(1.02)' : 'translateY(0) scale(1)',
                                 boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'
                             }}
@@ -100,12 +106,13 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                 `}>
                                     {store.value === 'all' ? 'Tous les magasins' : store.label}
                                 </span>
-                                <span className={`
-                                    text-[11px] font-medium transition-all duration-500
-                                    ${isSelected ? 'text-white/90' : 'text-gray-500'}
+                                <div className={`
+                                    text-[11px] font-medium px-2 py-0.5 rounded-full
+                                    ${isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}
+                                    transition-all duration-500
                                 `}>
                                     {store.getStat()}
-                                </span>
+                                </div>
                             </div>
                         </button>
                     );
@@ -117,80 +124,54 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
     // Mobile version
     return (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
-            <div className="bg-gradient-to-r from-[#2C3E50] to-[#3498DB] rounded-xl p-2 shadow-lg">
+            <div className="bg-gradient-to-r from-[#1E293B] via-[#334155] to-[#1E293B] rounded-xl p-2 shadow-lg">
                 <div className="flex overflow-x-auto scrollbar-hide gap-2">
                     {STORES.map((store) => {
                         const isSelected = selectedStoreId === store.value;
-                        const buttonStyles = {
-                            width: '100%',
-                            backgroundColor: isSelected ? store.color : 'rgba(255, 255, 255, 0.1)',
-                            backdropFilter: isSelected ? 'none' : 'blur(8px)',
-                            borderRadius: '0.5rem',
-                            padding: '0.5rem',
-                            WebkitAppearance: 'none',
-                            WebkitBorderRadius: '0.5rem',
-                            display: 'block',
-                            transition: 'all 0.2s ease',
-                            border: isSelected ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
-                            boxShadow: isSelected ? 'none' : '0 2px 4px rgba(0,0,0,0.1)'
-                        };
-
                         return (
                             <div
                                 key={store.value}
-                                style={{
-                                    width: isSelected ? '140px' : '72px',
-                                    flexShrink: 0,
-                                    transition: 'width 0.2s ease'
-                                }}
+                                className={`flex-shrink-0 transition-all duration-300 ${
+                                    isSelected ? 'w-[140px]' : 'w-[100px]'
+                                }`}
                             >
                                 <button
                                     onClick={() => onStoreChange(store.value)}
-                                    style={buttonStyles}
+                                    className={`
+                                        w-full h-[85px] rounded-lg p-2 transition-all duration-300
+                                        ${isSelected 
+                                            ? store.cardGradient + ' text-white' 
+                                            : 'bg-gradient-to-br from-gray-800 to-gray-900 text-gray-200'
+                                        }
+                                    `}
                                 >
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'space-between',
-                                        marginBottom: '0.25rem'
-                                    }}>
+                                    <div className="flex items-center justify-between mb-1">
                                         {store.value === 'all' ? (
-                                            <AiOutlineGlobal style={{ 
-                                                width: '1rem',
-                                                height: '1rem',
-                                                color: '#ffffff'
-                                            }} />
+                                            <AiOutlineGlobal className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-300'}`} />
                                         ) : (
-                                            <AiOutlineShop style={{ 
-                                                width: '1rem',
-                                                height: '1rem',
-                                                color: '#ffffff'
-                                            }} />
+                                            <AiOutlineShop className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-300'}`} />
                                         )}
                                         {isSelected && (
-                                            <IoStatsChartSharp style={{ 
-                                                width: '0.875rem',
-                                                height: '0.875rem',
-                                                color: '#ffffff'
-                                            }} />
+                                            <IoStatsChartSharp className="w-3.5 h-3.5 text-white" />
                                         )}
                                     </div>
                                     <div>
-                                        <div style={{ 
-                                            fontSize: '0.75rem',
-                                            fontWeight: 'bold',
-                                            color: '#ffffff',
-                                            whiteSpace: isSelected ? 'normal' : 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis'
-                                        }}>
-                                            {isSelected ? store.label : store.shortLabel}
+                                        <div className={`
+                                            text-xs font-bold 
+                                            ${isSelected ? 'text-white min-h-[2rem]' : 'text-gray-200 min-h-[1.25rem]'}
+                                            transition-all duration-300
+                                        `}>
+                                            <div className="truncate">
+                                                {isSelected ? store.label : store.shortLabel}
+                                            </div>
                                         </div>
-                                        <div style={{ 
-                                            fontSize: '0.625rem',
-                                            marginTop: '0.125rem',
-                                            color: 'rgba(255, 255, 255, 0.8)'
-                                        }}>
+                                        <div className={`
+                                            mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium
+                                            ${isSelected 
+                                                ? 'bg-white/20 text-white' 
+                                                : 'bg-gray-700 text-gray-200'
+                                            }
+                                        `}>
                                             {store.getStat()}
                                         </div>
                                     </div>

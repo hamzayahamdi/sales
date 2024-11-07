@@ -9,6 +9,45 @@ import dayjs from 'dayjs';
 import { FaSearch, FaFileExport, FaUsers } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
+// Add this helper function to get store color
+const getStoreColor = (storeName) => {
+    // First normalize the store name
+    const normalizedName = storeName?.trim().toLowerCase();
+    
+    if (normalizedName?.includes('sketch casa')) {
+        return 'bg-gradient-to-r from-[#599AED] to-[#3B82F6] text-white';
+    }
+    if (normalizedName?.includes('rabat/outlet')) {
+        return 'bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white';
+    }
+    if (normalizedName?.includes('sketch tanger')) {
+        return 'bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white';
+    }
+    if (normalizedName?.includes('sketch marrakech')) {
+        return 'bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white';
+    }
+    if (normalizedName?.includes('tous les magasins')) {
+        return 'bg-gradient-to-r from-[#6366F1] to-[#4F46E5] text-white';
+    }
+    
+    return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white';
+};
+
+// Add this function to format store names
+const formatStoreName = (storeName) => {
+    if (!storeName) return '';
+    
+    const name = storeName.toLowerCase().trim();
+    
+    if (name.includes('sketch casa')) return 'Casablanca';
+    if (name.includes('sketch tanger')) return 'Tanger';
+    if (name.includes('sketch marrakech')) return 'Marrakech';
+    if (name.includes('rabat/outlet')) return 'Rabat/Outlet';
+    if (name.includes('tous les magasins')) return 'Tous les magasins';
+    
+    return storeName;
+};
+
 const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
     const { width } = useWindowSize();
     const [salesTeam, setSalesTeam] = useState([]);
@@ -95,36 +134,62 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
             dataIndex: 'name',
             key: 'name',
             width: '60%',
-            render: (text, record) => (
-                <div className="flex items-center gap-3">
-                    {record.rank <= 3 && (
-                        <div className={`w-6 h-6 flex items-center justify-center rounded-full font-bold text-xs
-                            ${record.rank === 1 ? 'bg-[#22c55e]/10 text-[#22c55e]' : 
-                              record.rank === 2 ? 'bg-[#3b82f6]/10 text-[#3b82f6]' : 
-                              'bg-[#f59e0b]/10 text-[#f59e0b]'}
-                        `}>
-                            #{record.rank}
+            render: (text, record) => {
+                const names = text.trim().split(' ');
+                const firstName = names[0] || '';
+                const lastName = names[names.length - 1] || '';
+                const initials = firstName[0] && lastName[0] ? `${firstName[0]}${lastName[0]}` : '';
+                
+                return (
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            {record.rank <= 3 && (
+                                <div className="absolute -top-1.5 -right-1.5 z-10">
+                                    <div className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold shadow-lg
+                                        ${record.rank === 1 ? 'bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-white' : 
+                                          record.rank === 2 ? 'bg-gradient-to-br from-[#599AED] to-[#3B82F6] text-white' : 
+                                          'bg-gradient-to-br from-[#CD7F32] to-[#B87333] text-white'}`}
+                                    >
+                                        #{record.rank}
+                                    </div>
+                                </div>
+                            )}
+                            <div className={`w-11 h-11 flex items-center justify-center rounded-xl font-bold text-sm shadow-sm
+                                ${record.rank === 1 ? 'bg-gradient-to-br from-[#FFD700]/10 to-[#FFA500]/5 text-[#FFD700]' : 
+                                  record.rank === 2 ? 'bg-gradient-to-br from-[#599AED]/10 to-[#3B82F6]/5 text-[#599AED]' : 
+                                  record.rank === 3 ? 'bg-gradient-to-br from-[#CD7F32]/10 to-[#B87333]/5 text-[#CD7F32]' :
+                                  'bg-[#F3F3F8] text-gray-600'}`}
+                            >
+                                {initials}
+                            </div>
                         </div>
-                    )}
-                    <div className="flex flex-col min-w-0">
-                        <span className="font-medium truncate uppercase text-gray-900">
-                            {text}
-                        </span>
-                        <span className="text-xs text-gray-500 truncate">{record.store}</span>
+                        <div className="flex flex-col min-w-0">
+                            <span className="font-medium truncate text-gray-900 uppercase">
+                                {text}
+                            </span>
+                            <span className={`text-xs px-2.5 py-1 rounded-full inline-flex items-center justify-center w-fit shadow-sm ${getStoreColor(record.store)}`}>
+                                {formatStoreName(record.store)}
+                            </span>
+                        </div>
                     </div>
-                </div>
-            )
+                );
+            }
         },
         {
-            title: 'TOTAL TTC',
+            title: 'PERFORMANCE',
             dataIndex: 'total_sales',
             key: 'total_sales',
             width: '40%',
-            align: 'center',
+            align: 'right',
             render: (value, record) => (
-                <span className="font-medium text-gray-900">
-                    {new Intl.NumberFormat('en-US').format(value)} DH
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                    <span className="font-semibold text-gray-900">
+                        {new Intl.NumberFormat('fr-FR').format(value)} DH
+                    </span>
+                    <span className="text-xs text-gray-500">
+                        {record.sales_count} ventes
+                    </span>
+                </div>
             )
         }
     ];
@@ -134,61 +199,106 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
             title: 'VENDEUR',
             dataIndex: 'name',
             key: 'name',
-            width: '35%',
-            render: (text, record) => (
-                <div className="flex items-center gap-3">
-                    {record.rank <= 3 && (
-                        <div className={`w-7 h-7 flex items-center justify-center rounded-full font-bold text-sm
-                            ${record.rank === 1 ? 'bg-[#22c55e]/10 text-[#22c55e]' : 
-                              record.rank === 2 ? 'bg-[#3b82f6]/10 text-[#3b82f6]' : 
-                              'bg-[#f59e0b]/10 text-[#f59e0b]'}
-                        `}>
-                            #{record.rank}
+            width: '45%',
+            render: (text, record) => {
+                const names = text.trim().split(' ');
+                const firstName = names[0] || '';
+                const lastName = names[names.length - 1] || '';
+                const initials = firstName[0] && lastName[0] ? `${firstName[0]}${lastName[0]}` : '';
+                
+                return (
+                    <div className="flex items-center gap-4">
+                        <div className="relative flex items-center justify-center">
+                            {record.rank <= 3 && (
+                                <div className="absolute -top-2 -right-2 z-10">
+                                    <div className={`w-6 h-6 flex items-center justify-center rounded-full shadow-lg
+                                        ${record.rank === 1 ? 'bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-white' : 
+                                          record.rank === 2 ? 'bg-gradient-to-br from-[#599AED] to-[#3B82F6] text-white' : 
+                                          'bg-gradient-to-br from-[#CD7F32] to-[#B87333] text-white'}`}
+                                    >
+                                        <span className="text-[11px] font-bold">#{record.rank}</span>
+                                    </div>
+                                </div>
+                            )}
+                            <div className={`w-12 h-12 flex items-center justify-center rounded-xl shadow-sm
+                                ${record.rank === 1 ? 'bg-gradient-to-br from-[#FFD700]/10 to-[#FFA500]/5 text-[#FFD700]' : 
+                                  record.rank === 2 ? 'bg-gradient-to-br from-[#599AED]/10 to-[#3B82F6]/5 text-[#599AED]' : 
+                                  record.rank === 3 ? 'bg-gradient-to-br from-[#CD7F32]/10 to-[#B87333]/5 text-[#CD7F32]' :
+                                  'bg-[#F3F3F8] text-gray-600'}`}
+                            >
+                                <span className="text-base font-bold">{initials}</span>
+                            </div>
                         </div>
-                    )}
-                    <div className="flex flex-col">
-                        <span className="font-medium uppercase text-gray-900">
-                            {text}
-                        </span>
-                        <span className="text-xs text-gray-500">{record.store}</span>
+
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-semibold text-gray-900 truncate uppercase">
+                                {text}
+                            </span>
+                            <span className={`text-[11px] px-2 py-0.5 rounded-full inline-flex items-center justify-center w-fit shadow-sm ${getStoreColor(record.store)}`}>
+                                {formatStoreName(record.store)}
+                            </span>
+                        </div>
                     </div>
-                </div>
-            )
+                );
+            }
         },
         {
             title: 'VENTES',
             dataIndex: 'sales_count',
             key: 'sales_count',
-            width: '20%',
+            width: '18%',
             align: 'center',
             render: (value, record) => (
-                <span className="font-medium text-gray-900">
-                    {new Intl.NumberFormat('en-US').format(value)}
-                </span>
+                <div className="flex items-center justify-center">
+                    <div className="w-[140px] h-[38px] flex items-center bg-[#F3F3F8] rounded-lg p-1">
+                        <div className="flex items-center justify-center w-full h-[30px] bg-[#599AED] text-white rounded-md">
+                            <div className="flex items-center gap-2">
+                                <span className="text-base font-semibold">{value}</span>
+                                <div className="h-3.5 w-[1px] bg-white/30"></div>
+                                <span className="text-xs font-medium text-white/90">ventes</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )
         },
         {
             title: 'PANIER MOYEN',
             dataIndex: 'avg_basket',
             key: 'avg_basket',
-            width: '20%',
+            width: '18%',
             align: 'center',
-            render: (value, record) => (
-                <span className="font-medium text-gray-900">
-                    {new Intl.NumberFormat('en-US').format(value)} DH
-                </span>
+            render: (value) => (
+                <div className="px-4 py-2.5 bg-gradient-to-br from-emerald-400/10 via-emerald-400/5 to-emerald-400/0 rounded-xl">
+                    <div className="text-base font-bold text-emerald-600">
+                        {new Intl.NumberFormat('fr-FR').format(value)} DH
+                    </div>
+                    <div className="text-xs font-medium text-emerald-500">par vente</div>
+                </div>
             )
         },
         {
             title: 'TOTAL TTC',
             dataIndex: 'total_sales',
             key: 'total_sales',
-            width: '25%',
-            align: 'center',
+            width: '19%',
+            align: 'right',
             render: (value, record) => (
-                <span className="font-medium text-gray-900">
-                    {new Intl.NumberFormat('en-US').format(value)} DH
-                </span>
+                <div className="flex flex-col items-end gap-1.5">
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-bold text-gray-900">
+                            {new Intl.NumberFormat('fr-FR').format(value)}
+                        </span>
+                        <span className="text-sm font-medium text-gray-400">DH</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="flex -space-x-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                        </div>
+                        <span className="text-xs font-medium text-gray-500">total des ventes</span>
+                    </div>
+                </div>
             )
         }
     ];
@@ -274,33 +384,28 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                     rowKey="name"
                     showSorterTooltip={false}
                     pagination={false}
-                    size="small"
-                    className="sales-team-table h-full light"
+                    size="middle"
+                    className="sales-team-table h-full"
                     scroll={{ y: 360 }}
-                    style={{
-                        backgroundColor: '#ffffff',
-                        borderRadius: '8px',
-                    }}
                 />
             </div>
             <style jsx global>{`
                 .sales-team-table .ant-table {
-                    background: #ffffff !important;
+                    background: transparent !important;
                 }
                 .sales-team-table .ant-table-thead > tr > th {
                     background: #F3F3F8 !important;
                     border-bottom: 1px solid #E5E7EB !important;
                     color: #4B5563 !important;
+                    font-weight: 600;
+                    padding: 12px 16px;
                 }
                 .sales-team-table .ant-table-tbody > tr > td {
-                    border-bottom: 1px solid #E5E7EB !important;
-                    color: #111827 !important;
+                    border-bottom: 1px solid #F3F4F6 !important;
+                    padding: 12px 16px;
                 }
                 .sales-team-table .ant-table-tbody > tr:hover > td {
-                    background: #F3F3F8 !important;
-                }
-                .sales-team-table .ant-table-tbody > tr.ant-table-row:hover > td {
-                    background: #F3F3F8 !important;
+                    background: #F9FAFB !important;
                 }
             `}</style>
         </div>

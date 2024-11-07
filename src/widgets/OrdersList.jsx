@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useWindowSize } from 'react-use';
 import BasicTable from '@components/BasicTable';
 import { FaCreditCard, FaMoneyBillWave, FaUniversity, FaMoneyCheck, FaSearch, FaFileExport, FaFileInvoice, FaPhone } from 'react-icons/fa';
@@ -29,6 +29,36 @@ const OrdersList = ({ dateRange, storeId }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [expandedInvoice, setExpandedInvoice] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [displayedOrders, setDisplayedOrders] = useState([]);
+
+    const filteredOrders = useMemo(() => {
+        if (!searchTerm) return orders;
+        
+        const searchTerms = searchTerm.toLowerCase().split(' ').filter(term => term.length > 0);
+        
+        return orders.filter(order => {
+            // Basic order info search
+            const orderInfo = [
+                order.invoice_ref.toLowerCase(),
+                order.client_name.toLowerCase(),
+                order.client_phone?.toLowerCase(),
+                order.commercial_name.toLowerCase()
+            ].join(' ');
+
+            // Product search with combinations
+            const hasMatchingProduct = order.items.some(item => {
+                const productInfo = [
+                    item.product_label?.toLowerCase(),
+                    item.product_ref?.toLowerCase(),
+                    item.invoice_description?.toLowerCase()
+                ].filter(Boolean).join(' ');
+
+                return searchTerms.every(term => productInfo.includes(term));
+            });
+
+            return searchTerms.every(term => orderInfo.includes(term)) || hasMatchingProduct;
+        });
+    }, [orders, searchTerm]);
 
     const fetchOrders = async () => {
         setIsLoading(true);
@@ -78,6 +108,7 @@ const OrdersList = ({ dateRange, storeId }) => {
                 }, {});
 
                 setOrders(Object.values(groupedOrders));
+                setDisplayedOrders(Object.values(groupedOrders));
             }
         } catch (error) {
             console.error('Failed to fetch orders:', error);
@@ -119,37 +150,6 @@ const OrdersList = ({ dateRange, storeId }) => {
             </span>
         );
     };
-
-    const filteredOrders = useMemo(() => {
-        if (!searchTerm) return orders;
-        
-        const searchTerms = searchTerm.toLowerCase().split(' ').filter(term => term.length > 0);
-        
-        return orders.filter(order => {
-            // Basic order info search
-            const orderInfo = [
-                order.invoice_ref.toLowerCase(),
-                order.client_name.toLowerCase(),
-                order.client_phone?.toLowerCase(),
-                order.commercial_name.toLowerCase()
-            ].join(' ');
-
-            // Product search with combinations
-            const hasMatchingProduct = order.items.some(item => {
-                const productInfo = [
-                    item.product_label?.toLowerCase(),
-                    item.product_ref?.toLowerCase(),
-                    item.invoice_description?.toLowerCase()
-                ].filter(Boolean).join(' ');
-
-                // Check if all search terms are found in the product info
-                return searchTerms.every(term => productInfo.includes(term));
-            });
-
-            // Return true if either order info or product info matches all search terms
-            return searchTerms.every(term => orderInfo.includes(term)) || hasMatchingProduct;
-        });
-    }, [orders, searchTerm]);
 
     const exportToExcel = () => {
         const exportData = orders.map(order => ({
@@ -234,201 +234,196 @@ const OrdersList = ({ dateRange, storeId }) => {
                             <div 
                                 key={order.invoice_ref} 
                                 className={`
-                                    ${isExpanded ? 'bg-[#599AED]/30' : 
-                                      isAvoir ? 'bg-[#FF9900]/30' :  
-                                      isUnpaid ? 'bg-[#FF4444]/30' :  
-                                      'bg-[#F3F3F8]'
-                                    } 
-                                    rounded-lg overflow-hidden transition-all duration-300
-                                    border border-gray-200
-                                    ${isAvoir ? 'hover:border-[#FF9900]' : ''}
-                                    ${!isAvoir && isUnpaid ? 'hover:border-[#FF4444]' : ''}
+                                    mb-4 overflow-hidden transition-all duration-300 border
+                                    ${isExpanded ? 'shadow-lg rounded-xl' : 'shadow-sm rounded-lg hover:shadow-md'}
+                                    ${isAvoir ? 'bg-[#FFF8E6] border-[#FFB800]' : 
+                                      isUnpaid ? 'bg-[#FFF1F1] border-[#FF4444]' : 
+                                      'bg-[#EDF5FF] border-[#599AED]'}
                                 `}
                             >
-                                <div 
-                                    className={`flex items-center justify-between p-4 cursor-pointer
-                                        ${!isExpanded ? (
-                                            isAvoir ? 'hover:bg-[#FF9900]/30' : 
-                                            isUnpaid ? 'hover:bg-[#FF4444]/30' : 
-                                            'hover:bg-[#599AED]/30'  // Increased opacity for hover
-                                        ) : (
-                                            isAvoir ? 'bg-[#FF9900]/30' : 
-                                            isUnpaid ? 'bg-[#FF4444]/30' : 
-                                            'bg-[#599AED]/30'  // Header matches the expanded content background
-                                        )}`}
-                                    onClick={() => handleExpand(order.invoice_ref)}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex flex-col">
-                                            <span className="font-medium text-gray-900 text-xs md:text-base">{order.invoice_ref}</span>
-                                            <span className="text-[10px] md:text-xs text-gray-500">{order.invoice_date}</span>
+                                <div className="flex flex-col">
+                                    {/* Header Section */}
+                                    <div className={`
+                                        flex items-center justify-between px-3 py-2.5
+                                        ${isAvoir ? 'bg-[#FFB800]' : 
+                                         isUnpaid ? 'bg-[#FF4444]' : 
+                                         'bg-[#599AED]'}
+                                    `}>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`
+                                                px-2 py-0.5 md:px-2.5 md:py-1 rounded text-[10px] md:text-xs font-medium uppercase text-white
+                                                ${isAvoir ? 'bg-[#FFB800] shadow-[0_0_10px_#FFB800]' : 
+                                                 isUnpaid ? 'bg-[#DC2626] shadow-[0_0_10px_#DC2626]' : 
+                                                 'bg-[#22C55E] shadow-[0_0_10px_#22C55E]'}
+                                            `}>
+                                                {isAvoir ? 'Avoir' : isUnpaid ? 'Impayé' : 'Payé'}
+                                            </div>
+                                            <div className="text-[10px] text-white/90">
+                                                {order.invoice_date}
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col max-w-[150px] md:max-w-none">
-                                            <span className="font-medium text-gray-900 text-xs md:text-base truncate">{order.client_name}</span>
-                                            <span className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1">
-                                                <FaPhone className="w-2.5 h-2.5 md:w-3 md:h-3" />
-                                                <span className="truncate">{order.client_phone || 'N/A'}</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 md:gap-6">
-                                        <div className="flex flex-col items-end">
-                                            <div className="flex flex-col items-end gap-1">
-                                                <span className={`font-medium text-xs md:text-base ${isAvoir ? 'text-[#FF9900]' : 'text-gray-900'}`}>
-                                                    {order.total_invoice_amount} DH
-                                                </span>
-                                                <div className="flex items-center gap-1">
-                                                    {isAvoir && (
-                                                        <span className="px-1.5 md:px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full 
-                                                            bg-[#FF9900] text-white"
-                                                        >
-                                                            AVOIR
-                                                        </span>
-                                                    )}
-                                                    {getPaymentStatus(order)}
-                                                </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs md:text-sm text-white">
+                                                {order.total_invoice_amount} DH
                                             </div>
                                             {parseFloat(order.amount_unpaid.replace(/[^\d.-]/g, '')) > 0 && (
-                                                <div className="text-[10px] md:text-xs text-[#ef4444] mt-1">
-                                                    Reliquat: -{order.amount_unpaid} DH
+                                                <div className="text-[10px] md:text-xs bg-[#DC2626] text-white px-2 py-0.5 rounded 
+                                                    shadow-[0_0_10px_#DC2626] animate-pulse">
+                                                    -{order.amount_unpaid} DH
                                                 </div>
                                             )}
                                         </div>
-                                        <i className={`icon-chevron-down-regular text-gray-400 transition-transform ${expandedInvoice === order.invoice_ref ? 'rotate-180' : ''}`} />
                                     </div>
-                                </div>
 
-                                {/* Order Details - Update the animation */}
-                                <Transition
-                                    show={expandedInvoice === order.invoice_ref}
-                                    enter="transition-all duration-300 ease-out"
-                                    enterFrom="transform scale-y-0 opacity-0 origin-top"
-                                    enterTo="transform scale-y-100 opacity-100 origin-top"
-                                    leave="transition-all duration-200 ease-in"
-                                    leaveFrom="transform scale-y-100 opacity-100 origin-top"
-                                    leaveTo="transform scale-y-0 opacity-0 origin-top"
-                                >
-                                    <div className={`
-                                        border-t border-gray-200 p-4 
-                                        ${isAvoir ? 'bg-[#FF9900]/30' : 
-                                          isUnpaid ? 'bg-[#FF4444]/30' : 
-                                          'bg-[#599AED]/30'}
-                                    `}>
-                                        {/* Products Table */}
-                                        <table className="w-full text-sm md:text-base">
-                                            <thead>
-                                                <tr className="text-[10px] md:text-xs text-gray-500 uppercase">
-                                                    <th className="text-left py-2 hidden md:table-cell">Réf.</th>
-                                                    <th className="text-left py-2">Produit</th>
-                                                    <th className="text-right py-2">Qté</th>
-                                                    <th className="text-right py-2 min-w-[90px]">Prix TTC</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-200">
-                                                {order.items.map((item, index) => (
-                                                    <tr key={index} className="text-xs md:text-sm">
-                                                        <td className={`py-2 text-gray-500 hidden md:table-cell`}>
-                                                            {item.product_ref || '-'}
-                                                        </td>
-                                                        <td className={`py-2 text-gray-900 pr-2`}>
-                                                            {item.product_ref ? (
-                                                                decodeHtmlEntities(item.product_label)
-                                                            ) : (
-                                                                <span className="italic text-gray-900">
-                                                                    {decodeHtmlEntities(item.invoice_description || item.product_label)}
-                                                                </span>
-                                                            )}
-                                                        </td>
-                                                        <td className={`py-2 text-right text-gray-900 px-2`}>
-                                                            {item.qty_sold}
-                                                        </td>
-                                                        <td className={`py-2 text-right text-gray-900 whitespace-nowrap`}>
-                                                            {item.product_price_ttc} DH
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                    {/* Main Content - Clickable */}
+                                    <div 
+                                        className={`px-3 py-2.5 cursor-pointer
+                                            ${isAvoir ? 'hover:bg-[#FFF8E6]' : 
+                                             isUnpaid ? 'hover:bg-[#FFF1F1]' : 
+                                             'hover:bg-[#EDF5FF]'}
+                                        `}
+                                        onClick={() => handleExpand(order.invoice_ref)}
+                                    >
+                                        <div className="flex justify-between items-start gap-2">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    <span className="text-[11px] md:text-sm text-gray-900">
+                                                        {order.invoice_ref}
+                                                    </span>
+                                                    <span className={`
+                                                        text-[10px] md:text-sm px-1.5 py-0.5 md:px-2 md:py-1 rounded text-white
+                                                        ${isAvoir ? 'bg-[#FF9900] shadow-[0_0_15px_rgba(255,153,0,0.4)]' : 
+                                                         isUnpaid ? 'bg-[#FF4444] shadow-[0_0_15px_rgba(255,68,68,0.4)]' : 
+                                                         'bg-[#599AED] shadow-[0_0_15px_rgba(89,154,237,0.4)]'}
+                                                    `}>
+                                                        {order.commercial_name}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-[10px] md:text-xs text-gray-600">
+                                                    <span className="truncate max-w-[120px] md:max-w-[200px]">{order.client_name}</span>
+                                                    {order.client_phone && (
+                                                        <span className="flex items-center gap-1 shrink-0">
+                                                            <FaPhone className="w-2.5 h-2.5" />
+                                                            <span className="truncate max-w-[80px] md:max-w-[150px]">{order.client_phone}</span>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <button className="shrink-0 w-6 h-6 flex items-center justify-center">
+                                                <i className={`icon-chevron-down-regular text-gray-400 transition-transform ${
+                                                    isExpanded ? 'rotate-180' : ''
+                                                }`} />
+                                            </button>
+                                        </div>
+                                    </div>
 
-                                        {/* Payment Details and Notes */}
-                                        <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                                    {/* Expanded Details - Products Section */}
+                                    <Transition show={isExpanded}>
+                                        <div className="border-t border-gray-200">
+                                            <div className="p-3 bg-white/50">
+                                                <div className="text-[10px] md:text-sm font-medium text-gray-500 mb-2 uppercase">
+                                                    Produits
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    {order.items.map((item, index) => (
+                                                        <div key={index} className="flex items-center justify-between p-2 rounded bg-white text-[10px] md:text-xs">
+                                                            <div className="flex-1 min-w-0 pr-2">
+                                                                <div className="text-gray-900 truncate">
+                                                                    {decodeHtmlEntities(item.product_label || item.invoice_description)}
+                                                                </div>
+                                                                {item.product_ref && (
+                                                                    <div className="text-gray-500 text-[9px] md:text-[11px]">
+                                                                        Réf: {item.product_ref}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-3 shrink-0">
+                                                                <div className="text-gray-500">
+                                                                    Qté: {item.qty_sold}
+                                                                </div>
+                                                                <div className="font-medium text-gray-900">
+                                                                    {item.product_price_ttc} DH
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Payment Details Section */}
                                             {order.payment_details && (
-                                                <div className="text-sm">
-                                                    <span className="text-gray-500">Paiements:</span>
-                                                    <div className="flex flex-wrap gap-2 mt-2">
+                                                <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+                                                    <div className="text-xs font-medium text-gray-500 mb-3 uppercase">
+                                                        Détails de paiement
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
                                                         {order.payment_details.split(', ').map((payment, idx) => {
                                                             const [method, amount, date] = payment.split(': ');
                                                             if (!method || !amount) return null;
                                                             
-                                                            const paymentInfo = {
-                                                                'Carte bancaire': { icon: FaCreditCard, color: '#22DD66' },
-                                                                'Espèce': { icon: FaMoneyBillWave, color: '#599AED' },
-                                                                'Virement': { icon: FaUniversity, color: '#FF9900' },
-                                                                'Chèque': { icon: FaMoneyCheck, color: '#9933FF' }
-                                                            }[method] || { icon: FaMoneyBillWave, color: '#599AED' };
+                                                            const paymentInfo = PAYMENT_ICONS[method] || { 
+                                                                icon: FaMoneyBillWave, 
+                                                                color: '#599AED' 
+                                                            };
                                                             
                                                             const PaymentIcon = paymentInfo.icon;
                                                             
                                                             return (
                                                                 <div 
                                                                     key={idx}
-                                                                    className="flex items-center gap-2 px-3 py-1.5 rounded-full"
-                                                                    style={{
-                                                                        backgroundColor: paymentInfo.color,
-                                                                        color: 'white'
-                                                                    }}
+                                                                    className={`
+                                                                        flex items-center gap-3 px-3 py-2 rounded-lg
+                                                                        ${isAvoir ? 'bg-[#FF9900] shadow-[0_0_15px_rgba(255,153,0,0.35)]' : 
+                                                                         isUnpaid ? 'bg-[#FF4444] shadow-[0_0_15px_rgba(255,68,68,0.35)]' : 
+                                                                         'bg-[#599AED] shadow-[0_0_15px_rgba(89,154,237,0.35)]'}
+                                                                    `}
                                                                 >
-                                                                    <PaymentIcon className="w-4 h-4 text-white" />
-                                                                    <span>{method}</span>
-                                                                    {amount && <span>{amount}</span>}
-                                                                    {date && (
-                                                                        <span className="text-xs text-white/80">
-                                                                            ({date})
+                                                                    <div className="flex items-center gap-2">
+                                                                        <PaymentIcon className="w-4 h-4 text-white" />
+                                                                        <span className="text-[10px] md:text-xs text-white/90 font-medium uppercase">
+                                                                            {method}
                                                                         </span>
-                                                                    )}
+                                                                    </div>
+                                                                    <div className="h-4 w-[1px] bg-white/20" />
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-xs md:text-sm text-white font-medium">
+                                                                            {amount}
+                                                                        </span>
+                                                                        {date && (
+                                                                            <>
+                                                                                <div className="h-3 w-[1px] bg-white/20" />
+                                                                                <span className="text-[10px] text-white/70">
+                                                                                    {date.replace(/[()]/g, '')}
+                                                                                </span>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             );
                                                         })}
                                                     </div>
                                                 </div>
                                             )}
-                                            {parseFloat(order.amount_unpaid.replace(/[^\d.-]/g, '')) > 0 && (
-                                                <div className="text-sm flex items-center gap-2">
-                                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FF4444] text-white">
-                                                        <span>Reliquat:</span>
-                                                        <span>-{order.amount_unpaid} DH</span>
+
+                                            {/* Notes Section */}
+                                            {order.private_note && (
+                                                <div className="px-4 py-3 border-t border-gray-200 bg-white/50">
+                                                    <div className="text-xs font-medium text-gray-500 mb-3 uppercase">
+                                                        Notes
+                                                    </div>
+                                                    <div className={`
+                                                        text-sm text-gray-600 p-3 rounded-lg border
+                                                        ${isAvoir ? 'bg-amber-50 border-amber-200' : 
+                                                         isUnpaid ? 'bg-red-50 border-red-200' : 
+                                                         'bg-emerald-50 border-emerald-200'}
+                                                    `}>
+                                                        {order.private_note}
                                                     </div>
                                                 </div>
                                             )}
-                                            {order.private_note && (
-                                                <div className="text-sm">
-                                                    <span className="text-gray-500">Notes:</span>
-                                                    <p className="text-gray-900 mt-1">{order.private_note}</p>
-                                                </div>
-                                            )}
                                         </div>
-
-                                        {/* Footer */}
-                                        <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
-                                            <div className="text-sm text-gray-500 flex items-center gap-4">
-                                                <div>
-                                                    Commercial: <span className="text-gray-900">{order.commercial_name}</span>
-                                                </div>
-                                                <div>
-                                                    ICE: <span className="text-gray-900">{order.client_ice || 'N/A'}</span>
-                                                </div>
-                                            </div>
-                                            <a 
-                                                href={order.pdf_link}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-[#599AED] hover:text-[#4080d4]"
-                                            >
-                                                <i className="icon-file-pdf-regular text-lg" />
-                                            </a>
-                                        </div>
-                                    </div>
-                                </Transition>
+                                    </Transition>
+                                </div>
                             </div>
                         );
                     })}
