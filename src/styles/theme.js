@@ -1,69 +1,31 @@
-import {createGlobalStyle} from 'styled-components';
-import theme from 'styled-theming';
+import { createGlobalStyle } from 'styled-components';
 
 const ThemeStyles = createGlobalStyle`
   :root {
-    --body: ${theme('theme', {
-      light: 'var(--body-light)',
-      dark: 'var(--body-dark)'
-    })};
-    --widget: ${theme('theme', {
-        light: 'var(--widget-light)',
-        dark: 'var(--widget-dark)'
-    })};
-    --header: ${theme('theme', {
-        light: 'var(--header-light)',
-        dark: 'var(--header-dark)'
-    })};
-    --text: ${theme('theme', {
-        light: 'var(--text-light)',
-        dark: 'var(--text-dark)'
-    })};
-    --label: ${theme('theme', {
-        light: 'var(--label-light)',
-        dark: 'var(--label-dark)'
-    })};
-    --border: ${theme('theme', {
-        light: 'var(--border-light)',
-        dark: 'var(--border-dark)'
-    })};
-    --input-focus-border: ${theme('theme', {
-      light: 'var(--sidebar)',
-      dark: 'var(--turquoise)'
-    })};
-    --input-bg: ${theme('theme', {
-        light: 'var(--header-dark)',
-        dark: 'transparent'
-    })};
-    --tick: ${theme('theme', {
-        light: 'var(--label)',
-        dark: 'var(--border-light)'
-    })};
-    --cartesian-grid: ${theme('theme', {
-        light: 'var(--text-dark)',
-        dark: 'var(--label-light)'
-    })};
-    --sidebar: ${theme('theme', {
-        light: 'var(--sidebar-light)',
-        dark: 'var(--sidebar-dark)'
-    })};
-    --logo-icon: ${theme('theme', {
-        light: '#FAF8F0',
-        dark: '#DEE4DF'
-    })};
-    --heatmap-darkest: ${theme('theme', {
-        light: 'var(--sidebar-light)',
-        dark: 'var(--heatmap-max-dark)'
-    })};
-    --page: ${theme('theme', {
-        light: 'var(--page-light)',
-        dark: '#1D1D1D'
-    })};
-    --scrollbar: ${theme('theme', {
-        light: '#dee4df',
-        dark: 'var(--border)'
-    })};
+    // Light theme variables
+    --background: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --border-color: #dee2e6;
+  }
+
+  [data-theme='dark'] {
+    // Dark theme variables
+    --background: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #b3b3b3;
+    --primary-color: #0056b3;
+    --secondary-color: #545b62;
+    --border-color: #2d2d2d;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
   }
 `;
 
-export default ThemeStyles
+export default ThemeStyles;

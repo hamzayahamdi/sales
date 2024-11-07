@@ -19,11 +19,11 @@ const PERIODS = [
 
 // Colors for categories
 const COLORS = [
-    { color: 'turquoise', darkAura: '#1B3838', lightAura: '#F4FFFF' },
-    { color: 'blue', darkAura: '#14344A', lightAura: '#F1F7FF' },
-    { color: 'yellow', darkAura: '#3B300A', lightAura: '#FFFBF0' },
-    { color: 'peach', darkAura: '#3B300A', lightAura: '#FFFBF0' },
-    { color: 'red', darkAura: '#4E3130', lightAura: '#FFF3F4' }
+    { color: '#5CCFB9', name: 'turquoise' }, // Turquoise for Salon en L
+    { color: '#599AED', name: 'blue' },      // Blue for Chaise
+    { color: '#FFB347', name: 'yellow' },    // Yellow for Ensemble d'Extérieure
+    { color: '#FF9F7B', name: 'peach' },     // Peach for Table Basse
+    { color: '#FF6B6B', name: 'red' }        // Red for Table de Salle à Manger
 ];
 
 const formatLargeNumber = (number) => {
@@ -248,7 +248,7 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                     {categoryData.map((item, index) => (
                                         <Cell 
                                             key={index} 
-                                            fill={`var(--${COLORS[index % COLORS.length].color})`}
+                                            fill={COLORS[index % COLORS.length].color}
                                         />
                                     ))}
                                 </Pie>
@@ -287,7 +287,10 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                         {categoryData.map((item, index) => (
                             <div key={index} className="flex gap-3">
                                 <span className="flex items-center justify-center w-[30px] h-[30px] rounded-full mt-1 shrink-0 bg-gray-100">
-                                    <span className={`w-[15px] h-[15px] rounded-full bg-${COLORS[index % COLORS.length].color}`}/>
+                                    <span 
+                                        className="w-[15px] h-[15px] rounded-full"
+                                        style={{ backgroundColor: COLORS[index % COLORS.length].color }}
+                                    />
                                 </span>
                                 <div className="flex flex-col flex-1 gap-1.5">
                                     <p className="flex justify-between font-medium text-[15px] text-gray-900">
@@ -308,10 +311,7 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                         <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1">
                                             <div 
                                                 className="h-full rounded-full transition-all duration-500"
-                                                style={{
-                                                    width: `${(item.value / getTotal()) * 100}%`,
-                                                    backgroundColor: `var(--${COLORS[index % COLORS.length].color})`
-                                                }}
+                                                style={{ backgroundColor: COLORS[index % COLORS.length].color }}
                                             />
                                         </div>
                                     )}

@@ -3,7 +3,7 @@ import {Helmet} from 'react-helmet';
 import { MobileDateRangePicker } from '@mui/x-date-pickers-pro/MobileDateRangePicker';
 import { SingleInputDateRangeField } from '@mui/x-date-pickers-pro/SingleInputDateRangeField';
 import { Box, useMediaQuery, Tooltip } from '@mui/material';
-import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles';
+import { useTheme, ThemeProvider, createTheme, styled } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import PropTypes from 'prop-types';
@@ -36,6 +36,23 @@ const shortcuts = [
     { label: "Ce mois", value: "thisMonth" },
     { label: "Mois dernier", value: "lastMonth" },
 ];
+
+// Add this styled component for the global styles
+const StyledWrapper = styled('div')`
+    .MuiTextField-root .MuiInputBase-adornedEnd input[type=text] {
+        font-size: 13px !important;
+    }
+
+    .mx-auto {
+        margin-left: 0px;
+        margin-right: 0px;
+        max-width: none;
+    }
+
+    .border-b .mx-auto {
+        width: 100% !important;
+    }
+`;
 
 const AppBar = ({
     title = 'Dashboard',
@@ -331,12 +348,21 @@ const AppBar = ({
                         ],
                     }
                 }
+            },
+            MuiTextField: {
+                styleOverrides: {
+                    root: {
+                        '& .MuiInputBase-adornedEnd input[type=text]': {
+                            fontSize: '13px !important'
+                        }
+                    }
+                }
             }
         }
     });
 
     return (
-        <>
+        <StyledWrapper>
             <Helmet>
                 <title>Sales Dashboard</title>
                 <meta 
@@ -503,7 +529,7 @@ const AppBar = ({
                     loading={loading}
                 />
             )}
-        </>
+        </StyledWrapper>
     );
 };
 
