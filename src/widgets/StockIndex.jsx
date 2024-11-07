@@ -167,16 +167,21 @@ const StockIndex = ({ storeId = 'all' }) => {
                     width: '60%',
                     render: (text, record) => (
                         <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900 truncate">{text}</span>
-                                <span className="shrink-0 px-2 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-600 rounded-lg">
-                                    {new Intl.NumberFormat('fr-FR').format(record.price)} DH
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-1">
-                                <span className="text-[10px] font-medium text-gray-400">REF-{record.ref}</span>
-                                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                <span className="text-[10px] font-medium text-[#599AED]">{record.category}</span>
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-gray-900 truncate">{text}</span>
+                                    <span className="shrink-0 px-2 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-600 rounded-lg">
+                                        {new Intl.NumberFormat('fr-FR').format(record.price)} DH
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                        REF-{record.ref}
+                                    </span>
+                                    <span className="text-[10px] font-medium text-[#599AED] bg-[#599AED]/10 px-1.5 py-0.5 rounded">
+                                        {record.category}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     )
@@ -288,12 +293,12 @@ const StockIndex = ({ storeId = 'all' }) => {
                         <FaBoxOpen className="w-5 h-5 text-amber-600" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-900">Produits à Booster</h2>
-                        <p className="text-sm text-gray-500 mt-0.5">Produits à forte valeur nécessitant une attention marketing</p>
+                        <h2 className="text-xl font-semibold text-gray-900">Rotation des Stocks</h2>
+                        <p className="text-sm text-gray-500 mt-0.5">Analyse des stocks dormants et priorités de vente</p>
                     </div>
                 </div>
                 
-                {/* Single informative badge */}
+                {/* Formula badge */}
                 <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#F3F3F8] rounded-lg">
                     <div className="w-1.5 h-1.5 bg-[#599AED] rounded-full"></div>
                     <span className="text-xs font-medium text-gray-600">
