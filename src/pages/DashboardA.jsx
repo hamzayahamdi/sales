@@ -21,15 +21,43 @@ const DashboardA = () => {
     const today = dayjs();
     const defaultDateRange = `${today.format('DD/MM/YYYY')} - ${today.format('DD/MM/YYYY')}`;
     
+    // Get user role and store from localStorage
+    const userRole = localStorage.getItem('userRole');
+    const userStore = localStorage.getItem('userStore');
+    
     const [dateRange, setDateRange] = useState(defaultDateRange);
-    const [selectedStoreId, setSelectedStoreId] = useState('1');
+    // For store managers, always use their store ID
+    const [selectedStoreId, setSelectedStoreId] = useState(() => {
+        if (userRole === 'store_manager') {
+            if (userStore === '2') {
+                return '2'; // Default to Rabat
+            }
+            return userStore;
+        }
+        return '1';
+    });
     const { storeSales, loading } = useStoreSales(dateRange);
     const { width } = useWindowSize();
 
-    // Get user role from localStorage
-    const userRole = localStorage.getItem('userRole');
+    // Update store ID handler to respect store manager restrictions
+    const handleStoreChange = (newStoreId) => {
+        if (userRole === 'store_manager') {
+            // Special case for Rabat/Outlet manager
+            if (userStore === '2') {
+                // Allow switching between Rabat (2) and Outlet (10)
+                if (newStoreId === '2' || newStoreId === '10') {
+                    setSelectedStoreId(newStoreId);
+                }
+                return;
+            }
+            // Other store managers can't switch stores
+            return;
+        }
+        // Admin and comptabilite can switch to any store
+        setSelectedStoreId(newStoreId);
+    };
 
-    // Update the authorization check
+    // Get user role from localStorage
     const isAuthorizedUser = () => {
         return userRole === 'store_manager' || userRole === 'comptabilite';
     };
@@ -47,7 +75,7 @@ const DashboardA = () => {
                     dateRange={dateRange}
                     onDateRangeChange={setDateRange}
                     selectedStoreId={selectedStoreId}
-                    onStoreChange={setSelectedStoreId}
+                    onStoreChange={handleStoreChange}
                     storeSales={storeSales}
                     loading={loading}
                 />
