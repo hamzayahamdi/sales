@@ -39,6 +39,8 @@ import '@fonts/icomoon/icomoon.woff';
 const DashboardA = lazy(() => import('@pages/DashboardA'));
 const PageNotFound = lazy(() => import('@pages/PageNotFound'));
 
+const APP_VERSION = '1.0.0'; // Update this when you deploy
+
 const App = () => {
     const { theme } = useTheme();
 
@@ -189,6 +191,25 @@ const App = () => {
             `}
         </style>
     );
+
+    useEffect(() => {
+        const checkVersion = async () => {
+            try {
+                const response = await fetch('/version.json?t=' + new Date().getTime());
+                const data = await response.json();
+                
+                if (data.version !== APP_VERSION) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Version check failed:', error);
+            }
+        };
+
+        // Check version every minute
+        const interval = setInterval(checkVersion, 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <HelmetProvider>

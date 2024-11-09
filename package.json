@@ -74,7 +74,7 @@
     "xlsx": "^0.18.5"
   },
   "scripts": {
-    "start": "vite --host",
+    "prebuild": "node update-version.js",
     "build": "vite build",
     "serve": "vite preview"
   },
