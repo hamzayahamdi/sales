@@ -28,13 +28,18 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
     const [salesData, setSalesData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [period, setPeriod] = useState(PERIODS[0]);
+    const userRole = localStorage.getItem('userRole');
+    const isMobile = width < 768;
 
     const formatValue = useCallback((value) => {
+        if (userRole === 'store_manager' && !isMobile) {
+            return '•••••';
+        }
         return new Intl.NumberFormat('fr-FR', {
             notation: 'compact',
             compactDisplay: 'short'
         }).format(value);
-    }, []);
+    }, [userRole, isMobile]);
 
     const getWeekDates = (weekNumber) => {
         const year = dayjs().year();
@@ -308,10 +313,13 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                 <div className="bg-white p-3 shadow-lg rounded-lg border border-gray-200">
                     <p className="text-sm text-gray-600">{displayLabel}</p>
                     <p className="text-lg font-bold text-gray-900">
-                        {new Intl.NumberFormat('fr-FR', { 
-                            minimumFractionDigits: 2, 
-                            maximumFractionDigits: 2 
-                        }).format(payload[0].value)} DH
+                        {userRole === 'store_manager' && !isMobile 
+                            ? '••••• DH'
+                            : `${new Intl.NumberFormat('fr-FR', { 
+                                minimumFractionDigits: 2, 
+                                maximumFractionDigits: 2 
+                            }).format(payload[0].value)} DH`
+                        }
                     </p>
                 </div>
             );
@@ -330,6 +338,92 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
                         <div className="h-10 bg-gray-100 rounded w-full"></div>
                         <div className="h-10 bg-gray-100 rounded w-full"></div>
                         <div className="h-10 bg-gray-100 rounded w-full"></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (userRole === 'store_manager' && !isMobile) {
+        return (
+            <div className="flex flex-col h-full p-4 xs:p-5 bg-white shadow-lg rounded-xl">
+                {/* Title and Period Selector */}
+                <div className="flex items-center justify-between mb-6">
+                    {/* Title */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#599AED]/10">
+                            <FaChartArea className="w-5 h-5 text-[#599AED]" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-900">CA Analytics</h2>
+                            <p className="text-sm text-gray-500 mt-0.5">Vue d'ensemble des ventes</p>
+                        </div>
+                    </div>
+
+                    {/* Period Selector */}
+                    <div className="min-w-[120px]">
+                        <FormControl fullWidth size="small">
+                            <Select
+                                value={period.value}
+                                onChange={(e) => setPeriod(PERIODS.find(p => p.value === e.target.value))}
+                                sx={{
+                                    height: '36px',
+                                    backgroundColor: '#599AED',
+                                    color: '#ffffff',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        border: 'none',
+                                    },
+                                    '&:hover': {
+                                        backgroundColor: '#4080d4',
+                                    },
+                                    '&.Mui-focused': {
+                                        backgroundColor: '#4080d4',
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                        color: '#ffffff',
+                                    }
+                                }}
+                                MenuProps={{
+                                    PaperProps: {
+                                        sx: {
+                                            backgroundColor: '#599AED',
+                                            border: 'none',
+                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06)',
+                                            '& .MuiMenuItem-root': {
+                                                color: '#ffffff',
+                                                '&:hover': {
+                                                    backgroundColor: '#4080d4',
+                                                },
+                                                '&.Mui-selected': {
+                                                    backgroundColor: '#4080d4',
+                                                }
+                                            }
+                                        }
+                                    }
+                                }}
+                            >
+                                {PERIODS.map((option) => (
+                                    <MenuItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </div>
+                </div>
+
+                {/* Placeholder for hidden chart */}
+                <div className="flex-1 flex items-center justify-center bg-gray-50 rounded-lg">
+                    <div className="text-center p-6">
+                        <div className="text-gray-400 mb-2">
+                            <FaChartArea className="w-8 h-8 mx-auto" />
+                        </div>
+                        <p className="text-gray-500 font-medium">
+                            Les données sont masquées sur la version desktop
+                        </p>
+                        <p className="text-sm text-gray-400 mt-1">
+                            Consultez sur mobile pour voir les détails
+                        </p>
                     </div>
                 </div>
             </div>

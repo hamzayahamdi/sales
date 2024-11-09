@@ -119,7 +119,7 @@ const PaymentsList = ({ dateRange, storeId }) => {
     }
 
     return (
-        <div className="flex flex-col h-[700px] p-4 xs:p-5 bg-white shadow-lg rounded-xl">
+        <div className="flex flex-col h-[900px] p-4 xs:p-5 bg-white shadow-lg rounded-xl">
             {/* Title */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">

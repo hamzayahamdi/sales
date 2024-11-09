@@ -471,12 +471,19 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                 .bestsellers-table .ant-table {
                     background: transparent !important;
                 }
+                .bestsellers-table .ant-table-body {
+                    height: ${storeId !== 'all' ? '100% !important' : 'auto'};
+                    max-height: ${storeId !== 'all' ? '1066px !important' : '360px'};
+                }
                 .bestsellers-table .ant-table-thead > tr > th {
                     background: #F9FAFB !important;
                     border-bottom: 1px solid #E5E7EB !important;
                     color: #4B5563 !important;
                     font-weight: 600;
                     padding: 12px 16px;
+                    position: sticky;
+                    top: 0;
+                    z-index: 1;
                 }
                 .bestsellers-table .ant-table-tbody > tr > td {
                     border-bottom: 1px solid #F3F4F6 !important;

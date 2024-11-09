@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import dayjs from 'dayjs';
+import { FaMobileAlt } from 'react-icons/fa';
+import { useWindowSize } from 'react-use';
 
 // Components
 import AppBar from '@components/AppBar';
@@ -22,6 +24,20 @@ const DashboardA = () => {
     const [dateRange, setDateRange] = useState(defaultDateRange);
     const [selectedStoreId, setSelectedStoreId] = useState('1');
     const { storeSales, loading } = useStoreSales(dateRange);
+    const { width } = useWindowSize();
+
+    // Get user role from localStorage
+    const userRole = localStorage.getItem('userRole');
+
+    // Update the authorization check
+    const isAuthorizedUser = () => {
+        return userRole === 'store_manager' || userRole === 'comptabilite';
+    };
+
+    // Add a separate check for admin
+    const isAdminUser = () => {
+        return userRole === 'admin';
+    };
 
     return (
         <div className="bg-[#F3F3F8] min-h-screen w-full">
@@ -36,23 +52,63 @@ const DashboardA = () => {
                     loading={loading}
                 />
             </div>
-            <div className="space-y-6 pt-[20px] pb-24">
-                <div className="relative">
-                    <div className="absolute inset-0 w-full bg-[#F3F3F8]" style={{ boxShadow: 'none' }}>
-                        <div className="w-full px-4" style={{ margin: '0', maxWidth: 'none' }}>
+            <div className={`space-y-6 pb-24 ${
+                width < 768 || userRole === 'admin' || userRole === 'comptabilite' 
+                    ? 'mt-3' 
+                    : '-mt-[15px]'
+            } pt-0`}>
+                {userRole === 'store_manager' ? (
+                    <>
+                        {/* Show on mobile */}
+                        <div className="md:hidden">
+                            <div className="relative">
+                                <div className="absolute inset-0 w-full bg-[#F3F3F8]" style={{ boxShadow: 'none' }}>
+                                    <div className="w-full px-4" style={{ margin: '0', maxWidth: 'none' }}>
+                                        <Statistics 
+                                            dateRange={dateRange} 
+                                            storeId={selectedStoreId} 
+                                        />
+                                    </div>
+                                </div>
+                                <div className="invisible">
+                                    <Statistics 
+                                        dateRange={dateRange} 
+                                        storeId={selectedStoreId} 
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Show message on desktop - Moved closer to header */}
+                        <div className="hidden md:block px-4 -mt-3 mb-1">
+                            <div className="bg-white/80 backdrop-blur-sm rounded-lg py-1.5 px-3 border border-gray-100 flex items-center gap-2">
+                                <div className="w-5 h-5 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                                    <FaMobileAlt className="w-3 h-3 text-[#599AED]" />
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                    Statistiques disponibles sur mobile uniquement
+                                </p>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="relative">
+                        <div className="absolute inset-0 w-full bg-[#F3F3F8]" style={{ boxShadow: 'none' }}>
+                            <div className="w-full px-4" style={{ margin: '0', maxWidth: 'none' }}>
+                                <Statistics 
+                                    dateRange={dateRange} 
+                                    storeId={selectedStoreId} 
+                                />
+                            </div>
+                        </div>
+                        <div className="invisible">
                             <Statistics 
                                 dateRange={dateRange} 
                                 storeId={selectedStoreId} 
                             />
                         </div>
                     </div>
-                    <div className="invisible">
-                        <Statistics 
-                            dateRange={dateRange} 
-                            storeId={selectedStoreId} 
-                        />
-                    </div>
-                </div>
+                )}
                 <div className="px-4">
                     {selectedStoreId === 'all' ? (
                         <>
@@ -91,20 +147,42 @@ const DashboardA = () => {
                             </div>
                             
                             {/* Orders and Payments Section */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <OrdersList 
-                                    storeId={selectedStoreId}
-                                    dateRange={dateRange}
-                                />
-                                <PaymentsList 
-                                    storeId={selectedStoreId}
-                                    dateRange={dateRange}
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                                <div className="md:col-span-3">
+                                    <OrdersList 
+                                        storeId={selectedStoreId}
+                                        dateRange={dateRange}
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <PaymentsList 
+                                        storeId={selectedStoreId}
+                                        dateRange={dateRange}
+                                    />
+                                </div>
                             </div>
                         </>
                     ) : (
                         <div className="space-y-6">
-                            {/* First row */}
+                            {/* Orders and Payments - Only for store managers and comptabilite */}
+                            {isAuthorizedUser() && (
+                                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                                    <div className="md:col-span-3">
+                                        <OrdersList 
+                                            storeId={selectedStoreId}
+                                            dateRange={dateRange}
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <PaymentsList 
+                                            storeId={selectedStoreId}
+                                            dateRange={dateRange}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Rest of the sections */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <SalesAnalyticsArea storeId={selectedStoreId} />
                                 <SalesByCategory 
@@ -113,34 +191,39 @@ const DashboardA = () => {
                                 />
                             </div>
                             
-                            {/* Second row - Bestsellers and StockIndex */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <TopSelling 
-                                    storeId={selectedStoreId}
-                                    dateRange={dateRange}
-                                />
-                                <SalesTeamLeaderboard 
-                                    storeId={selectedStoreId}
-                                    dateRange={dateRange}
-                                />
+                                <div className="grid grid-rows-2 gap-6">
+                                    <SalesTeamLeaderboard 
+                                        storeId={selectedStoreId}
+                                        dateRange={dateRange}
+                                    />
+                                    <StockIndex storeId={selectedStoreId} />
+                                </div>
+                                <div className="h-full">
+                                    <TopSelling 
+                                        storeId={selectedStoreId}
+                                        dateRange={dateRange}
+                                    />
+                                </div>
                             </div>
 
-                            {/* Third row - Stock Index */}
-                            <div className="w-full">
-                                <StockIndex storeId={selectedStoreId} />
-                            </div>
-
-                            {/* Fourth row - Orders and Payments */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <OrdersList 
-                                    storeId={selectedStoreId}
-                                    dateRange={dateRange}
-                                />
-                                <PaymentsList 
-                                    storeId={selectedStoreId}
-                                    dateRange={dateRange}
-                                />
-                            </div>
+                            {/* Orders and Payments - Only for admin */}
+                            {isAdminUser() && (
+                                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                                    <div className="md:col-span-3">
+                                        <OrdersList 
+                                            storeId={selectedStoreId}
+                                            dateRange={dateRange}
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <PaymentsList 
+                                            storeId={selectedStoreId}
+                                            dateRange={dateRange}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

@@ -12,9 +12,12 @@ import 'dayjs/locale/fr';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import weekday from 'dayjs/plugin/weekday';
 import isoWeek from 'dayjs/plugin/isoWeek';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
+import { FaUserCircle, FaSignOutAlt, FaStore, FaUserShield, FaCalculator } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { useWindowSize } from 'react-use';
 
 // assets
 import salesLogo from '../sales.svg';
@@ -53,6 +56,167 @@ const StyledWrapper = styled('div')`
         width: 100% !important;
     }
 `;
+
+const UserProfile = () => {
+    const [isOpen, setIsOpen] = useState(false);
+    const navigate = useNavigate();
+    const profileRef = useRef(null);
+    const { width } = useWindowSize();
+    const isMobile = width < 768;
+    
+    const userName = localStorage.getItem('userName');
+    const userRole = localStorage.getItem('userRole');
+    const userStore = localStorage.getItem('userStore');
+
+    const getRoleIcon = (role) => {
+        switch(role) {
+            case 'admin':
+                return <FaUserShield className="w-4 h-4" />;
+            case 'comptabilite':
+                return <FaCalculator className="w-4 h-4" />;
+            case 'store_manager':
+                return <FaStore className="w-4 h-4" />;
+            default:
+                return <FaUserCircle className="w-4 h-4" />;
+        }
+    };
+
+    const getRoleLabel = (role) => {
+        switch(role) {
+            case 'admin':
+                return 'Administrateur';
+            case 'comptabilite':
+                return 'Comptabilité';
+            case 'store_manager':
+                return 'Manager';
+            default:
+                return role;
+        }
+    };
+
+    const getStoreLabel = (store) => {
+        switch(store) {
+            case '1': return 'Casa';
+            case '2': return 'Rabat';
+            case '5': return 'Tanger';
+            case '6': return 'Marrakech';
+            case 'all': return 'Global';
+            default: return store;
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate('/login');
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    if (isMobile) {
+        return (
+            <div className="fixed top-[84px] right-4 z-50" ref={profileRef}>
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="w-10 h-10 rounded-full bg-[#599AED] hover:bg-[#4080d4] transition-colors flex items-center justify-center shadow-lg"
+                >
+                    <FaUserCircle className="w-5 h-5 text-white" />
+                </button>
+
+                <Transition
+                    show={isOpen}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                    className="absolute right-0 mt-2 w-48 origin-top-right"
+                >
+                    <div className="bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 divide-y divide-gray-100">
+                        <div className="p-3">
+                            <div className="text-sm font-medium text-gray-900">{userName}</div>
+                            {userStore !== 'all' && (
+                                <div className="flex items-center gap-1.5 mt-1 text-gray-600">
+                                    <FaStore className="w-3 h-3" />
+                                    <span className="text-xs">{getStoreLabel(userStore)}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-1">
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                                <FaSignOutAlt className="w-3.5 h-3.5" />
+                                Se déconnecter
+                            </button>
+                        </div>
+                    </div>
+                </Transition>
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative" ref={profileRef}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#599AED] hover:bg-[#4080d4] transition-colors group"
+            >
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-white">
+                        {getRoleIcon(userRole)}
+                    </div>
+                    <span className="text-sm font-medium text-white">
+                        {userName}
+                    </span>
+                </div>
+            </button>
+
+            <Transition
+                show={isOpen}
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
+                className="absolute right-0 mt-2 w-48 origin-top-right z-50"
+            >
+                <div className="bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 divide-y divide-gray-100">
+                    <div className="p-2">
+                        <div className="px-3 py-2">
+                            {userStore !== 'all' && (
+                                <div className="flex items-center gap-1.5 text-gray-600">
+                                    <FaStore className="w-3.5 h-3.5" />
+                                    <span className="text-sm">{getStoreLabel(userStore)}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="p-1">
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                            <FaSignOutAlt className="w-3.5 h-3.5" />
+                            Se déconnecter
+                        </button>
+                    </div>
+                </div>
+            </Transition>
+        </div>
+    );
+};
 
 const AppBar = ({
     title = 'Dashboard',
@@ -391,129 +555,132 @@ const AppBar = ({
                             </div>
                         )}
 
-                        <div className="relative date-picker-container flex items-center">
-                            <Box sx={datePickerStyles}>
-                                <ThemeProvider theme={datePickerTheme}>
-                                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="fr">
-                                        <MobileDateRangePicker
-                                            value={parseDateRange()}
-                                            onChange={handleDateChange}
-                                            slots={{
-                                                field: SingleInputDateRangeField
-                                            }}
-                                            slotProps={{
-                                                textField: { size: 'small' },
-                                                field: { readOnly: true }
-                                            }}
-                                            localeText={{ 
-                                                start: 'Début',
-                                                end: 'Fin',
-                                                cancel: 'Annuler',
-                                                ok: 'Valider',
-                                                today: "Aujourd'hui",
-                                                calendarWeekNumberHeaderText: 'Semaine',
-                                                calendarWeekNumberText: n => `S${n}`,
-                                                clockLabelText: 'Sélectionnez l\'heure',
-                                                hoursClockNumberText: 'heures',
-                                                minutesClockNumberText: 'minutes',
-                                                secondsClockNumberText: 'secondes',
-                                                selectedRangeStartLabel: 'Début de période',
-                                                selectedRangeEndLabel: 'Fin de période',
-                                                dateRangePickerToolbarTitle: 'Sélectionner la période'
-                                            }}
-                                        />
-                                    </LocalizationProvider>
-                                </ThemeProvider>
-                            </Box>
+                        <div className="flex items-center gap-3">
+                            {!isMobile && <UserProfile />}
+                            <div className="relative date-picker-container flex items-center">
+                                <Box sx={datePickerStyles}>
+                                    <ThemeProvider theme={datePickerTheme}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="fr">
+                                            <MobileDateRangePicker
+                                                value={parseDateRange()}
+                                                onChange={handleDateChange}
+                                                slots={{
+                                                    field: SingleInputDateRangeField
+                                                }}
+                                                slotProps={{
+                                                    textField: { size: 'small' },
+                                                    field: { readOnly: true }
+                                                }}
+                                                localeText={{ 
+                                                    start: 'Début',
+                                                    end: 'Fin',
+                                                    cancel: 'Annuler',
+                                                    ok: 'Valider',
+                                                    today: "Aujourd'hui",
+                                                    calendarWeekNumberHeaderText: 'Semaine',
+                                                    calendarWeekNumberText: n => `S${n}`,
+                                                    clockLabelText: 'Sélectionnez l\'heure',
+                                                    hoursClockNumberText: 'heures',
+                                                    minutesClockNumberText: 'minutes',
+                                                    secondsClockNumberText: 'secondes',
+                                                    selectedRangeStartLabel: 'Début de période',
+                                                    selectedRangeEndLabel: 'Fin de période',
+                                                    dateRangePickerToolbarTitle: 'Sélectionner la période'
+                                                }}
+                                            />
+                                        </LocalizationProvider>
+                                    </ThemeProvider>
+                                </Box>
 
-                            {/* Dropdown Button - Updated styling */}
-                            <button
-                                onClick={() => {
-                                    if (!calendarOpen) {
-                                        setShortcutsOpen(!shortcutsOpen);
-                                    }
-                                }}
-                                className="ml-2 p-2 rounded-md bg-[#599AED] hover:bg-[#4080d4] transition-colors"
-                            >
-                                <ChevronDownIcon 
-                                    className={`w-5 h-5 text-white transition-transform duration-200 ${shortcutsOpen ? 'rotate-180' : ''}`}
-                                />
-                            </button>
+                                {/* Dropdown Button - Updated styling */}
+                                <button
+                                    onClick={() => {
+                                        if (!calendarOpen) {
+                                            setShortcutsOpen(!shortcutsOpen);
+                                        }
+                                    }}
+                                    className="ml-2 p-2 rounded-md bg-[#599AED] hover:bg-[#4080d4] transition-colors"
+                                >
+                                    <ChevronDownIcon 
+                                        className={`w-5 h-5 text-white transition-transform duration-200 ${shortcutsOpen ? 'rotate-180' : ''}`}
+                                    />
+                                </button>
 
-                            {/* Animated Shortcuts Dropdown - Updated positioning */}
-                            <Transition
-                                show={shortcutsOpen && !calendarOpen}
-                                enter="transition ease-out duration-200"
-                                enterFrom="transform opacity-0 scale-95"
-                                enterTo="transform opacity-100 scale-100"
-                                leave="transition ease-in duration-150"
-                                leaveFrom="transform opacity-100 scale-100"
-                                leaveTo="transform opacity-0 scale-95"
-                                className="absolute right-0 top-full mt-2 w-56 origin-top-right z-50"
-                            >
-                                <div className="bg-[#599AED] rounded-lg shadow-xl py-1">
-                                    {shortcuts.map((shortcut) => (
-                                        <button
-                                            key={shortcut.value}
-                                            onClick={() => {
-                                                let dates;
-                                                const today = dayjs();
-                                                
-                                                switch(shortcut.value) {
-                                                    case 'today':
-                                                        dates = [today, today];
-                                                        break;
-                                                    case 'yesterday':
-                                                        const yesterday = today.subtract(1, 'day');
-                                                        dates = [yesterday, yesterday];
-                                                        break;
-                                                    case 'thisWeek':
-                                                        const thisWeekStart = today.startOf('isoWeek');
-                                                        const thisWeekEnd = today.endOf('isoWeek');
-                                                        dates = [thisWeekStart, thisWeekEnd];
-                                                        break;
-                                                    case 'lastWeek':
-                                                        const lastWeekStart = today.subtract(1, 'week').startOf('isoWeek');
-                                                        const lastWeekEnd = lastWeekStart.endOf('isoWeek');
-                                                        dates = [lastWeekStart, lastWeekEnd];
-                                                        break;
-                                                    case 'thisMonth':
-                                                        dates = [today.startOf('month'), today.endOf('month')];
-                                                        break;
-                                                    case 'lastMonth':
-                                                        const lastMonth = today.subtract(1, 'month');
-                                                        dates = [
-                                                            lastMonth.startOf('month'),
-                                                            lastMonth.endOf('month')
-                                                        ];
-                                                        break;
-                                                    default:
-                                                        dates = [today, today];
-                                                }
-                                                handleDateChange(dates);
-                                                setShortcutsOpen(false);
-                                            }}
-                                            className={`
-                                                w-full px-4 py-3 text-sm flex items-center space-x-3
-                                                ${selectedShortcut === shortcut.value 
-                                                    ? 'bg-[#4080d4] text-white font-medium'
-                                                    : 'text-white hover:bg-[#4080d4]'
-                                                }
-                                                transition-all duration-150 ease-in-out
-                                                relative
-                                                ${selectedShortcut === shortcut.value ? 'after:absolute after:left-0 after:top-0 after:bottom-0 after:w-0.5 after:bg-white' : ''}
-                                            `}
-                                        >
-                                            <span className="flex-1 text-left">{shortcut.label}</span>
-                                            {selectedShortcut === shortcut.value && (
-                                                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-white/10">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                                                </span>
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            </Transition>
+                                {/* Animated Shortcuts Dropdown - Updated positioning */}
+                                <Transition
+                                    show={shortcutsOpen && !calendarOpen}
+                                    enter="transition ease-out duration-200"
+                                    enterFrom="transform opacity-0 scale-95"
+                                    enterTo="transform opacity-100 scale-100"
+                                    leave="transition ease-in duration-150"
+                                    leaveFrom="transform opacity-100 scale-100"
+                                    leaveTo="transform opacity-0 scale-95"
+                                    className="absolute right-0 top-full mt-2 w-56 origin-top-right z-50"
+                                >
+                                    <div className="bg-[#599AED] rounded-lg shadow-xl py-1">
+                                        {shortcuts.map((shortcut) => (
+                                            <button
+                                                key={shortcut.value}
+                                                onClick={() => {
+                                                    let dates;
+                                                    const today = dayjs();
+                                                    
+                                                    switch(shortcut.value) {
+                                                        case 'today':
+                                                            dates = [today, today];
+                                                            break;
+                                                        case 'yesterday':
+                                                            const yesterday = today.subtract(1, 'day');
+                                                            dates = [yesterday, yesterday];
+                                                            break;
+                                                        case 'thisWeek':
+                                                            const thisWeekStart = today.startOf('isoWeek');
+                                                            const thisWeekEnd = today.endOf('isoWeek');
+                                                            dates = [thisWeekStart, thisWeekEnd];
+                                                            break;
+                                                        case 'lastWeek':
+                                                            const lastWeekStart = today.subtract(1, 'week').startOf('isoWeek');
+                                                            const lastWeekEnd = lastWeekStart.endOf('isoWeek');
+                                                            dates = [lastWeekStart, lastWeekEnd];
+                                                            break;
+                                                        case 'thisMonth':
+                                                            dates = [today.startOf('month'), today.endOf('month')];
+                                                            break;
+                                                        case 'lastMonth':
+                                                            const lastMonth = today.subtract(1, 'month');
+                                                            dates = [
+                                                                lastMonth.startOf('month'),
+                                                                lastMonth.endOf('month')
+                                                            ];
+                                                            break;
+                                                        default:
+                                                            dates = [today, today];
+                                                    }
+                                                    handleDateChange(dates);
+                                                    setShortcutsOpen(false);
+                                                }}
+                                                className={`
+                                                    w-full px-4 py-3 text-sm flex items-center space-x-3
+                                                    ${selectedShortcut === shortcut.value 
+                                                        ? 'bg-[#4080d4] text-white font-medium'
+                                                        : 'text-white hover:bg-[#4080d4]'
+                                                    }
+                                                    transition-all duration-150 ease-in-out
+                                                    relative
+                                                    ${selectedShortcut === shortcut.value ? 'after:absolute after:left-0 after:top-0 after:bottom-0 after:w-0.5 after:bg-white' : ''}
+                                                `}
+                                            >
+                                                <span className="flex-1 text-left">{shortcut.label}</span>
+                                                {selectedShortcut === shortcut.value && (
+                                                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-white/10">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                                    </span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </Transition>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -529,6 +696,8 @@ const AppBar = ({
                     loading={loading}
                 />
             )}
+
+            {isMobile && <UserProfile />}
         </StyledWrapper>
     );
 };

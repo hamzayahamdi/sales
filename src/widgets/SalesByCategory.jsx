@@ -121,6 +121,8 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
     const [period, setPeriod] = useState(PERIODS[0]);
     const [categoryData, setCategoryData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const userRole = localStorage.getItem('userRole');
+    const isMobile = width < 768;
 
     const fetchCategoryData = async () => {
         setIsLoading(true);
@@ -254,7 +256,24 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                 </Pie>
                                 <Tooltip 
                                     cursor={false} 
-                                    content={<CustomTooltip/>}
+                                    content={({ active, payload }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div className="bg-[#599AED] p-3 rounded-lg shadow-lg">
+                                                    <p className="text-lg font-bold text-white">
+                                                        {userRole === 'store_manager' && !isMobile 
+                                                            ? '••••• DH'
+                                                            : `${new Intl.NumberFormat('fr-FR', { 
+                                                                minimumFractionDigits: 2, 
+                                                                maximumFractionDigits: 2 
+                                                            }).format(payload[0].value)} DH`
+                                                        }
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }}
                                     contentStyle={{
                                         backgroundColor: '#599AED',
                                         border: 'none',
@@ -270,7 +289,10 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                             <div className="text-center m-auto justify-center">
                                 <div className="counter-wrapper">
                                     <span className="counter block whitespace-nowrap text-[32px] font-bold">
-                                        {formatLargeNumber(getTotal())}
+                                        {userRole === 'store_manager' && !isMobile 
+                                            ? '•••••' 
+                                            : formatLargeNumber(getTotal())
+                                        }
                                     </span>
                                 </div>
                                 <span className="block text-[18px] font-medium text-gray-500">
@@ -296,10 +318,13 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                     <p className="flex justify-between font-medium text-[15px] text-gray-900">
                                         <span className="truncate pr-2">{decodeHtmlEntities(item.category)}</span>
                                         <span className="whitespace-nowrap">
-                                            {new Intl.NumberFormat('fr-FR', { 
-                                                minimumFractionDigits: 2, 
-                                                maximumFractionDigits: 2 
-                                            }).format(item.value)} DH
+                                            {userRole === 'store_manager' && !isMobile 
+                                                ? '••••• DH'
+                                                : `${new Intl.NumberFormat('fr-FR', { 
+                                                    minimumFractionDigits: 2, 
+                                                    maximumFractionDigits: 2 
+                                                }).format(item.value)} DH`
+                                            }
                                         </span>
                                     </p>
                                     <div className="flex items-center justify-between">

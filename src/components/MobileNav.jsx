@@ -1,19 +1,35 @@
 import { AiOutlineShop, AiOutlineGlobal } from 'react-icons/ai';
 import { IoStatsChartSharp } from 'react-icons/io5';
+import { useEffect } from 'react';
 
 const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {}, loading }) => {
+    const userRole = localStorage.getItem('userRole');
+    const userStore = localStorage.getItem('userStore');
+
+    const isStoreAccessible = (storeId) => {
+        if (userRole === 'store_manager') {
+            if (userStore === '2') {
+                return storeId === '2' || storeId === '10';
+            }
+            return storeId === userStore;
+        }
+        return true;
+    };
+
+    useEffect(() => {
+        if (userRole === 'store_manager' && userStore) {
+            onStoreChange(userStore);
+        }
+    }, [userRole, userStore]);
+
     const formatStat = (value) => {
         if (loading) return '...';
         if (!storeSales || typeof value === 'undefined') return '0 DH';
         
-        // Convert to number and round
         const num = Math.round(value / 1000);
-        
-        // Format as M if >= 1000K
         if (num >= 1000) {
             return `${(num / 1000).toFixed(1)}M DH`;
         }
-        
         return `${num}K DH`;
     };
 
@@ -68,21 +84,28 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
         }
     ];
 
-    // Desktop version
     if (isDesktop) {
         return (
             <div className="flex gap-2 px-4">
                 {STORES.map((store) => {
                     const isSelected = selectedStoreId === store.value;
+                    const isAccessible = isStoreAccessible(store.value);
+                    
                     return (
                         <button
                             key={store.value}
-                            onClick={() => onStoreChange(store.value)}
+                            onClick={() => isAccessible && onStoreChange(store.value)}
+                            disabled={!isAccessible}
                             className={`
                                 flex items-center gap-2.5 py-1.5 px-3 rounded-lg
                                 transition-all duration-500 ease-out
                                 ${isSelected ? 'min-w-[160px]' : 'min-w-[140px]'}
-                                ${isSelected ? store.cardGradient + ' text-white' : 'bg-[#f3f4f6]'}
+                                ${isSelected 
+                                    ? store.cardGradient + ' text-white' 
+                                    : isAccessible 
+                                        ? 'bg-[#f3f4f6] hover:bg-gray-200'
+                                        : 'bg-gray-100 opacity-50 cursor-not-allowed'
+                                }
                             `}
                             style={{
                                 transform: isSelected ? 'translateY(-1px) scale(1.02)' : 'translateY(0) scale(1)',
@@ -121,13 +144,14 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
         );
     }
 
-    // Mobile version
     return (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
             <div className="bg-gradient-to-r from-[#1E293B] via-[#334155] to-[#1E293B] rounded-xl p-2 shadow-lg">
                 <div className="flex overflow-x-auto scrollbar-hide gap-2">
                     {STORES.map((store) => {
                         const isSelected = selectedStoreId === store.value;
+                        const isAccessible = isStoreAccessible(store.value);
+                        
                         return (
                             <div
                                 key={store.value}
@@ -136,12 +160,15 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                 }`}
                             >
                                 <button
-                                    onClick={() => onStoreChange(store.value)}
+                                    onClick={() => isAccessible && onStoreChange(store.value)}
+                                    disabled={!isAccessible}
                                     className={`
                                         w-full h-[85px] rounded-lg p-2 transition-all duration-300
                                         ${isSelected 
                                             ? store.cardGradient + ' text-white' 
-                                            : 'bg-gradient-to-br from-gray-800 to-gray-900 text-gray-200'
+                                            : isAccessible
+                                                ? 'bg-gradient-to-br from-gray-800 to-gray-900 text-gray-200 hover:from-gray-700 hover:to-gray-800'
+                                                : 'bg-gradient-to-br from-gray-700 to-gray-800 text-gray-400 opacity-50 cursor-not-allowed'
                                         }
                                     `}
                                 >

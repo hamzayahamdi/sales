@@ -10,8 +10,13 @@ import {
     FaExchangeAlt 
 } from 'react-icons/fa';
 import Counter from '@components/Counter';
+import { useWindowSize } from 'react-use';
 
 const Statistics = ({ dateRange, storeId = 'all' }) => {
+    const { width } = useWindowSize();
+    const userRole = localStorage.getItem('userRole');
+    const isMobile = width < 768;
+
     const [allStats, setAllStats] = useState([
         {
             title: "CHIFFRE D'AFFAIRE",
@@ -205,32 +210,32 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
     const primaryStats = allStats.filter(stat => stat.type === 'primary');
     const paymentStats = allStats.filter(stat => stat.type === 'payment');
 
-    // Replace the switch statements with a helper function
-    const getPaymentGradients = (paymentType) => {
-        switch(paymentType) {
+    // Add this helper function for payment gradients
+    const getPaymentGradients = (title) => {
+        switch(title) {
             case 'TOTAL CARTE BANCAIRE':
+                return {
+                    bg: 'from-emerald-500/10 via-emerald-500/5 to-transparent',
+                    icon: 'from-emerald-500 to-emerald-600',
+                    text: 'from-emerald-600 to-emerald-800'
+                };
+            case 'TOTAL CHÈQUE':
                 return {
                     bg: 'from-violet-500/10 via-violet-500/5 to-transparent',
                     icon: 'from-violet-500 to-violet-600',
                     text: 'from-violet-600 to-violet-800'
                 };
-            case 'TOTAL CHÈQUE':
-                return {
-                    bg: 'from-cyan-500/10 via-cyan-500/5 to-transparent',
-                    icon: 'from-cyan-500 to-cyan-600',
-                    text: 'from-cyan-600 to-cyan-800'
-                };
             case 'TOTAL ESPÈCE':
                 return {
-                    bg: 'from-pink-500/10 via-pink-500/5 to-transparent',
-                    icon: 'from-pink-500 to-pink-600',
-                    text: 'from-pink-600 to-pink-800'
+                    bg: 'from-amber-500/10 via-amber-500/5 to-transparent',
+                    icon: 'from-amber-500 to-amber-600',
+                    text: 'from-amber-600 to-amber-800'
                 };
             case 'TOTAL VIREMENT':
                 return {
-                    bg: 'from-teal-500/10 via-teal-500/5 to-transparent',
-                    icon: 'from-teal-500 to-teal-600',
-                    text: 'from-teal-600 to-teal-800'
+                    bg: 'from-blue-500/10 via-blue-500/5 to-transparent',
+                    icon: 'from-blue-500 to-blue-600',
+                    text: 'from-blue-600 to-blue-800'
                 };
             default:
                 return {
@@ -238,6 +243,22 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
                     icon: 'from-gray-500 to-gray-600',
                     text: 'from-gray-600 to-gray-800'
                 };
+        }
+    };
+
+    // Update the getIconGradient function
+    const getIconStyle = (title) => {
+        switch(title) {
+            case 'TOTAL CARTE BANCAIRE':
+                return 'bg-[#7C3AED] text-white'; // Purple
+            case 'TOTAL CHÈQUE':
+                return 'bg-[#06B6D4] text-white'; // Cyan
+            case 'TOTAL ESPÈCE':
+                return 'bg-[#F43F5E] text-white'; // Pink/Red
+            case 'TOTAL VIREMENT':
+                return 'bg-[#10B981] text-white'; // Green
+            default:
+                return 'bg-gray-500 text-white';
         }
     };
 
@@ -288,7 +309,10 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
                                             : index === 1 
                                             ? 'from-emerald-600 to-emerald-800'
                                             : 'from-amber-600 to-amber-800'} bg-clip-text text-transparent`}>
-                                            {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.value)}
+                                            {userRole === 'store_manager' && !isMobile ? '•••••' : new Intl.NumberFormat('fr-FR', { 
+                                                minimumFractionDigits: 2, 
+                                                maximumFractionDigits: 2 
+                                            }).format(item.value)}
                                         </span>
                                         <span className="text-[20px] font-medium text-gray-500">
                                             {item.valuePrefix}
@@ -318,14 +342,11 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
                             </div>
                         ) : (
                             <div className="relative p-4 bg-white rounded-xl shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
-                                {/* Background gradient */}
-                                <div className={`absolute inset-0 bg-gradient-to-br ${getPaymentGradients(item.title).bg} opacity-50`}></div>
-                                
                                 {/* Content */}
                                 <div className="relative">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className={`flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br ${getPaymentGradients(item.title).icon} shadow-sm`}>
-                                            <item.icon className="w-4 h-4 text-white" />
+                                        <div className={`flex items-center justify-center w-10 h-10 rounded-lg shadow-sm ${getIconStyle(item.title)}`}>
+                                            <item.icon className="w-4 h-4" />
                                         </div>
                                         <h3 className="text-xs font-medium text-gray-600 uppercase tracking-wide">
                                             {item.title}
@@ -333,8 +354,11 @@ const Statistics = ({ dateRange, storeId = 'all' }) => {
                                     </div>
 
                                     <div className="flex items-baseline gap-1.5">
-                                        <span className={`text-lg font-bold tracking-tight bg-gradient-to-br ${getPaymentGradients(item.title).text} bg-clip-text text-transparent`}>
-                                            {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.value)}
+                                        <span className="text-lg font-bold text-gray-900">
+                                            {userRole === 'store_manager' && !isMobile ? '•••••' : new Intl.NumberFormat('fr-FR', { 
+                                                minimumFractionDigits: 2, 
+                                                maximumFractionDigits: 2 
+                                            }).format(item.value)}
                                         </span>
                                         <span className="text-sm font-medium text-gray-500">
                                             {item.valuePrefix}
