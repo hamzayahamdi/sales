@@ -1,30 +1,23 @@
-import AppBar from '@components/AppBar';
-import {NavLink} from 'react-router-dom';
-import img from '@assets/404.svg';
+import { Link } from 'react-router-dom';
 
 const PageNotFound = () => {
     return (
-        <>
-            <AppBar title="Page not found" />
-            <div className="layout-wrapper flex flex-1 h-full">
-                <div className="card flex flex-col items-center justify-center flex-1 p-6 md:p-10 xl:flex-row
-                 xl:p-10 xl:pb-0 xl:justify-start">
-                    <img className="hidden xl:block max-w-[600px] mt-auto 4xl:max-w-[826px]" src={img} alt="404"/>
-                    <div className="flex flex-col items-center text-center xl:ml-[94px]">
-                    <span className="font-bold text-[72px] leading-none text-[#578787] dark:text-turquoise
-                          md:text-[212px] md:leading-[1.1]">
-                        404
-                    </span>
-                        <p className="font-bold text-header text-[18px] mt-10 mb-8 max-w-[240px] md:text-[32px]
-                       md:max-w-[500px] md:mt-[3px] md:mb-[56px]">
-                            Sorry, You Are Not Allowed to Access This Page
-                        </p>
-                        <NavLink to="/" className="btn btn--primary w-[155px]">Go to Home</NavLink>
-                    </div>
-                </div>
+        <div className="min-h-screen bg-[#F3F3F8] flex items-center justify-center px-4">
+            <div className="max-w-md w-full text-center">
+                <h1 className="text-9xl font-bold text-[#599AED]">404</h1>
+                <h2 className="mt-4 text-2xl font-semibold text-gray-900">Page non trouvée</h2>
+                <p className="mt-2 text-gray-600">
+                    Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
+                </p>
+                <Link 
+                    to="/dashboard" 
+                    className="mt-6 inline-flex items-center justify-center px-4 py-2 bg-[#599AED] text-white rounded-lg hover:bg-[#4080d4] transition-colors"
+                >
+                    Retour au tableau de bord
+                </Link>
             </div>
-        </>
+        </div>
     );
-}
+};
 
-export default PageNotFound
+export default PageNotFound;
