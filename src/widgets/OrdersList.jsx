@@ -301,20 +301,20 @@ const OrdersList = ({ dateRange, storeId }) => {
         setStatusFilter(status);
         setCurrentPage(1);
         
-        const formData = new FormData();
-        const formattedDateRange = Array.isArray(dateRange) 
-            ? `${dateRange[0].format('DD/MM/YYYY')} - ${dateRange[1].format('DD/MM/YYYY')}`
-            : dateRange;
-
-        formData.append('date_range', formattedDateRange);
-        formData.append('store_id', storeId);
-        formData.append('page', 1);
-        formData.append('per_page', pageSize);
-        formData.append('search_term', searchTerm);
-        formData.append('status_filter', status);
-
         try {
-            const response = await fetch('/api/fetch_orders.php', {
+            const formData = new FormData();
+            const formattedDateRange = Array.isArray(dateRange) 
+                ? `${dateRange[0].format('DD/MM/YYYY')} - ${dateRange[1].format('DD/MM/YYYY')}`
+                : dateRange;
+
+            formData.append('date_range', formattedDateRange);
+            formData.append('store_id', storeId);
+            formData.append('page', 1);
+            formData.append('per_page', pageSize);
+            formData.append('search_term', searchTerm);
+            formData.append('status_filter', status);
+
+            const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_orders.php', {
                 method: 'POST',
                 body: formData
             });
@@ -325,9 +325,26 @@ const OrdersList = ({ dateRange, storeId }) => {
                 setOrders(data.orders);
                 setDisplayedOrders(data.orders);
                 setTotalItems(data.total_count);
+                if (data.counters) {
+                    setCounters({
+                        total: parseInt(data.total_count),
+                        paye: parseInt(data.counters.paye),
+                        impaye: parseInt(data.counters.impaye),
+                        avoir: parseInt(data.counters.avoir)
+                    });
+                }
             }
         } catch (error) {
             console.error('Failed to fetch orders:', error);
+            setOrders([]);
+            setDisplayedOrders([]);
+            setTotalItems(0);
+            setCounters({
+                total: 0,
+                paye: 0,
+                impaye: 0,
+                avoir: 0
+            });
         }
     }, [dateRange, storeId, searchTerm, pageSize]);
 
