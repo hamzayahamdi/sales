@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import BasicTable from '@components/BasicTable';
 import { useWindowSize } from 'react-use';
-import { FaSearch, FaFileExport, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaFileExport, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { TbAlertSquareRoundedFilled } from 'react-icons/tb';
 import * as XLSX from 'xlsx';
 
@@ -39,56 +39,58 @@ const StockIndex = ({ storeId = 'all' }) => {
     const [stockData, setStockData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const [isPageLoading, setIsPageLoading] = useState(true);
+    const [isChangingPage, setIsChangingPage] = useState(false);
+    const scrollContainerRef = useRef(null);
+    const pageSize = width < 640 ? 7 : (storeId === 'all' ? 14 : 7);
 
-    const fetchStockData = async () => {
-        setIsLoading(true);
+    const fetchStockData = async (page = 1, search = '') => {
+        setIsPageLoading(true);
         try {
             const response = await fetch(
-                `https://ratio.sketchdesign.ma/ratio/fetch_stock_days.php?store_id=${storeId}`
+                `https://ratio.sketchdesign.ma/ratio/fetch_stock_days.php?store_id=${storeId}&page=${page}&per_page=${pageSize}&search=${search}`
             );
             const data = await response.json();
             
-            if (Array.isArray(data)) {
-                const uniqueData = Array.from(new Map(data.map(item => [item.ref, item])).values());
-                setStockData(uniqueData);
+            if (data.data) {
+                setStockData(data.data);
+                setTotalItems(data.pagination.total_count);
             }
         } catch (error) {
             console.error('Failed to fetch stock data:', error);
             setStockData([]);
+            setTotalItems(0);
         } finally {
+            setIsPageLoading(false);
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchStockData();
-    }, [storeId]);
+        fetchStockData(1, searchTerm);
+    }, [storeId, searchTerm]);
 
-    const filteredData = useMemo(() => {
-        let filtered = [...stockData];
-
-        if (searchTerm.trim()) {
-            const searchTerms = searchTerm.toLowerCase().trim().split(' ');
-            filtered = filtered.filter(item => 
-                searchTerms.every(term =>
-                    item.ref.toLowerCase().includes(term) ||
-                    item.name.toLowerCase().includes(term) ||
-                    item.category.toLowerCase().includes(term)
-                )
-            );
+    const handlePageChange = async (page) => {
+        setIsChangingPage(true);
+        setCurrentPage(page);
+        
+        try {
+            await fetchStockData(page, searchTerm);
+        } finally {
+            setTimeout(() => {
+                setIsChangingPage(false);
+            }, 300); // Small delay to ensure smooth transition
         }
-
-        return filtered.sort((a, b) => {
-            if (a.days_in_stock === 999999 && b.days_in_stock !== 999999) return -1;
-            if (a.days_in_stock !== 999999 && b.days_in_stock === 999999) return 1;
-            
-            if (a.days_in_stock === 999999 && b.days_in_stock === 999999) {
-                return b.price - a.price;
-            }
-            
-            return b.days_in_stock - a.days_in_stock;
-        });
-    }, [stockData, searchTerm]);
+        
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     const handleSearchChange = (value) => {
         setSearchTerm(value);
@@ -233,6 +235,98 @@ const StockIndex = ({ storeId = 'all' }) => {
         XLSX.writeFile(wb, `stock_index_${storeId}.xlsx`);
     };
 
+    const PaginationComponent = ({ current, total, pageSize, onChange }) => {
+        const totalPages = Math.ceil(total / pageSize);
+        const startItem = ((current - 1) * pageSize) + 1;
+        const endItem = Math.min(current * pageSize, total);
+
+        const getVisiblePages = () => {
+            const delta = 2;
+            const range = [];
+            const rangeWithDots = [];
+            let l;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= current - delta && i <= current + delta)) {
+                    range.push(i);
+                }
+            }
+
+            range.forEach(i => {
+                if (l) {
+                    if (i - l === 2) {
+                        rangeWithDots.push(l + 1);
+                    } else if (i - l !== 1) {
+                        rangeWithDots.push('...');
+                    }
+                }
+                rangeWithDots.push(i);
+                l = i;
+            });
+
+            return rangeWithDots;
+        };
+
+        return (
+            <div className="flex items-center justify-between py-3 px-1">
+                <div className="text-sm text-gray-500">
+                    <span className="font-medium text-gray-700">{startItem}-{endItem}</span> sur <span className="font-medium text-gray-700">{total}</span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                    <button
+                        onClick={() => current > 1 && onChange(current - 1)}
+                        disabled={current === 1}
+                        className={`flex items-center justify-center w-8 h-8 rounded-md transition-all ${
+                            current === 1 
+                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                                : 'bg-white text-gray-500 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                        }`}
+                    >
+                        <FaChevronLeft className="w-3 h-3" />
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                        {getVisiblePages().map((pageNumber, index) => (
+                            pageNumber === '...' ? (
+                                <div 
+                                    key={`dots-${index}`}
+                                    className="w-8 h-8 flex items-center justify-center text-gray-400"
+                                >
+                                    ⋯
+                                </div>
+                            ) : (
+                                <button
+                                    key={pageNumber}
+                                    onClick={() => onChange(pageNumber)}
+                                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-all ${
+                                        pageNumber === current
+                                            ? 'bg-[#599AED] text-white font-medium border border-[#599AED]'
+                                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-[#599AED] border border-gray-200'
+                                    }`}
+                                >
+                                    {pageNumber}
+                                </button>
+                            )
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={() => current < totalPages && onChange(current + 1)}
+                        disabled={current === totalPages}
+                        className={`flex items-center justify-center w-8 h-8 rounded-md transition-all ${
+                            current === totalPages 
+                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                                : 'bg-white text-gray-500 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                        }`}
+                    >
+                        <FaChevronRight className="w-3 h-3" />
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     if (isLoading) {
         return (
             <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
@@ -287,24 +381,64 @@ const StockIndex = ({ storeId = 'all' }) => {
                 </button>
             </div>
 
-            {/* Results count */}
-            <div className="mb-3 text-sm text-gray-500">
-                {filteredData.length} résultats trouvés
+            {/* Add top pagination */}
+            {totalItems > 0 && (
+                <div className="mb-4">
+                    <PaginationComponent
+                        current={currentPage}
+                        total={totalItems}
+                        pageSize={pageSize}
+                        onChange={handlePageChange}
+                    />
+                </div>
+            )}
+
+            {/* Table container with loading overlay */}
+            <div className="flex-1 overflow-hidden relative" ref={scrollContainerRef}>
+                <div className={`transition-opacity duration-200 ${
+                    isChangingPage ? 'opacity-50' : 'opacity-100'
+                }`}>
+                    <BasicTable 
+                        dataSource={stockData}
+                        columns={getColumns()}
+                        rowKey="ref"
+                        showSorterTooltip={false}
+                        pagination={false}
+                        size="middle"
+                        className="stock-index-table h-full"
+                        scroll={{ y: storeId === 'all' ? 1000 : 500 }}
+                    />
+                </div>
+                
+                {/* Loading overlay */}
+                {isChangingPage && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/30 backdrop-blur-[1px]">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="relative">
+                                <div className="w-12 h-12 rounded-full border-[3px] border-t-[#599AED] border-r-[#599AED] border-b-[#599AED]/20 border-l-[#599AED]/20 animate-spin"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-full border-[2px] border-t-[#599AED]/30 border-r-[#599AED]/30 border-b-[#599AED] border-l-[#599AED] animate-spin"></div>
+                                </div>
+                            </div>
+                            <span className="text-sm font-medium text-gray-500">
+                                Chargement...
+                            </span>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* Table */}
-            <div className="flex-1 overflow-hidden">
-                <BasicTable 
-                    dataSource={filteredData}
-                    columns={getColumns()}
-                    rowKey="ref"
-                    showSorterTooltip={false}
-                    pagination={false}
-                    size="middle"
-                    className="stock-index-table h-full"
-                    scroll={{ y: 360 }}
-                />
-            </div>
+            {/* Bottom pagination */}
+            {totalItems > 0 && (
+                <div className="mt-4">
+                    <PaginationComponent
+                        current={currentPage}
+                        total={totalItems}
+                        pageSize={pageSize}
+                        onChange={handlePageChange}
+                    />
+                </div>
+            )}
 
             <style jsx global>{`
                 .stock-index-table .ant-table {

@@ -6,9 +6,10 @@ import TopSellingCollapse from '@components/TopSellingCollapse';
 // hooks
 import {useWindowSize} from 'react-use';
 import {useState, useEffect, useMemo, useCallback} from 'react';
-import { FaSearch, FaFileExport, FaChartLine, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { FaSearch, FaFileExport, FaChartLine, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { TbArrowBadgeUpFilled, TbArrowBadgeDownFilled } from 'react-icons/tb';
 import * as XLSX from 'xlsx';
+import { Pagination } from 'antd';
 
 // Add this helper function at the top
 const getFrequencyLabel = (frequency) => {
@@ -22,19 +23,12 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
     const {width} = useWindowSize();
     const [activeCollapse, setActiveCollapse] = useState('');
     const [topProducts, setTopProducts] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [productsStock, setProductsStock] = useState({});
     const [searchTerm, setSearchTerm] = useState('');
-    const [displayedProducts, setDisplayedProducts] = useState([]);
-
-    const filteredProducts = useMemo(() => {
-        if (!searchTerm) return topProducts;
-        
-        return topProducts.filter(product => 
-            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.ref.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [topProducts, searchTerm]);
+    const [totalItems, setTotalItems] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = storeId === 'all' ? 11 : 16;
+    const [isPageLoading, setIsPageLoading] = useState(false);
 
     const fetchAllProducts = async (productName) => {
         try {
@@ -85,8 +79,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
             .replace(/&amp;/g, '&');
     };
 
-    const fetchTopProducts = async () => {
-        setIsLoading(true);
+    const fetchTopProducts = async (page = 1) => {
         try {
             const formData = new FormData();
             const formattedDateRange = Array.isArray(dateRange) 
@@ -95,6 +88,17 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                 
             formData.append('date_range', formattedDateRange);
             formData.append('store_id', storeId);
+            formData.append('page', page);
+            formData.append('per_page', pageSize);
+            formData.append('search_term', searchTerm);
+
+            console.log('Sending to API:', {
+                date_range: formattedDateRange,
+                store_id: storeId,
+                page,
+                per_page: pageSize,
+                search_term: searchTerm
+            });
 
             const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_sales_new.php', {
                 method: 'POST',
@@ -103,9 +107,16 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
 
             const salesData = await response.json();
             
+            console.log('API Response:', salesData);
+            
             if (salesData.best_selling_products) {
+                const startIndex = (page - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+                
+                const paginatedProducts = salesData.best_selling_products.slice(startIndex, endIndex);
+                
                 const productsWithDetails = await Promise.all(
-                    salesData.best_selling_products.map(async (product, index) => {
+                    paginatedProducts.map(async (product, index) => {
                         const productDetails = await fetchAllProducts(product.label);
                         const matchingProduct = productDetails?.[0];
                         
@@ -126,7 +137,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                 );
 
                 setTopProducts(productsWithDetails);
-                setDisplayedProducts(productsWithDetails);
+                setTotalItems(salesData.best_selling_products.length);
                 
                 const newStockData = {};
                 productsWithDetails.forEach(product => {
@@ -135,19 +146,31 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                     }
                 });
                 setProductsStock(newStockData);
+            } else {
+                setTopProducts([]);
+                setTotalItems(0);
             }
         } catch (error) {
             console.error('Failed to fetch top products:', error);
             setTopProducts([]);
-            setDisplayedProducts([]);
-        } finally {
-            setIsLoading(false);
+            setTotalItems(0);
         }
     };
 
+    // Effect for fetching data
     useEffect(() => {
-        fetchTopProducts();
-    }, [storeId, dateRange]);
+        const loadData = async () => {
+            setIsPageLoading(true);
+            await fetchTopProducts(1);
+            setIsPageLoading(false);
+        };
+
+        const timer = setTimeout(() => {
+            loadData();
+        }, 500); // Debounce the API call
+
+        return () => clearTimeout(timer);
+    }, [storeId, dateRange]); // Use searchTerm directly instead of debouncedSearchTerm
 
     useEffect(() => {
         const handleResize = () => setActiveCollapse('');
@@ -400,22 +423,189 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
         XLSX.writeFile(wb, `bestsellers_${storeId}_${dateRange}.xlsx`);
     };
 
-    if (isLoading) {
+    const handlePageChange = async (page) => {
+        setIsPageLoading(true);
+        setCurrentPage(page);
+        await fetchTopProducts(page);
+        
+        const tableContainer = document.querySelector('.bestsellers-table .ant-table-body');
+        if (tableContainer) {
+            tableContainer.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        
+        const topSellingWidget = document.querySelector('.bestsellers-table').closest('.flex-col');
+        if (topSellingWidget) {
+            const yOffset = -100;
+            const y = topSellingWidget.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({
+                top: y,
+                behavior: 'smooth'
+            });
+        }
+        setIsPageLoading(false);
+    };
+
+    // Create a PaginationComponent with a modern design
+    const PaginationComponent = ({ current, total, pageSize, onChange }) => {
+        const totalPages = Math.ceil(total / pageSize);
+        const startItem = ((current - 1) * pageSize) + 1;
+        const endItem = Math.min(current * pageSize, total);
+
+        // Calculate visible page numbers
+        const getVisiblePages = () => {
+            const delta = 2; // Number of pages to show before and after current page
+            const range = [];
+            const rangeWithDots = [];
+            let l;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= current - delta && i <= current + delta)) {
+                    range.push(i);
+                }
+            }
+
+            range.forEach(i => {
+                if (l) {
+                    if (i - l === 2) {
+                        rangeWithDots.push(l + 1);
+                    } else if (i - l !== 1) {
+                        rangeWithDots.push('...');
+                    }
+                }
+                rangeWithDots.push(i);
+                l = i;
+            });
+
+            return rangeWithDots;
+        };
+
         return (
-            <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
-                <h2 className="text-xl font-semibold mb-4 text-gray-900">Bestsellers</h2>
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="animate-pulse space-y-4 w-full">
-                        <div className="h-10 bg-gray-100 rounded w-full"></div>
-                        <div className="h-10 bg-gray-100 rounded w-full"></div>
-                        <div className="h-10 bg-gray-100 rounded w-full"></div>
-                        <div className="h-10 bg-gray-100 rounded w-full"></div>
-                        <div className="h-10 bg-gray-100 rounded w-full"></div>
+            <div className="flex items-center justify-between py-3 px-1">
+                {/* Items info */}
+                <div className="text-sm text-gray-500">
+                    <span className="font-medium text-gray-700">{startItem}-{endItem}</span> sur <span className="font-medium text-gray-700">{total}</span>
+                </div>
+
+                {/* Pagination controls */}
+                <div className="flex items-center gap-1.5">
+                    {/* Previous button */}
+                    <button
+                        onClick={() => current > 1 && onChange(current - 1)}
+                        disabled={current === 1}
+                        className={`flex items-center justify-center w-8 h-8 rounded-md transition-all ${
+                            current === 1 
+                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                                : 'bg-white text-gray-500 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                        }`}
+                    >
+                        <FaChevronLeft className="w-3 h-3" />
+                    </button>
+
+                    {/* Page numbers */}
+                    <div className="flex items-center gap-1">
+                        {getVisiblePages().map((pageNumber, index) => (
+                            pageNumber === '...' ? (
+                                <div 
+                                    key={`dots-${index}`}
+                                    className="w-8 h-8 flex items-center justify-center text-gray-400"
+                                >
+                                    ⋯
+                                </div>
+                            ) : (
+                                <button
+                                    key={pageNumber}
+                                    onClick={() => onChange(pageNumber)}
+                                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-all ${
+                                        pageNumber === current
+                                            ? 'bg-[#599AED] text-white font-medium border border-[#599AED]'
+                                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-[#599AED] border border-gray-200'
+                                    }`}
+                                >
+                                    {pageNumber}
+                                </button>
+                            )
+                        ))}
                     </div>
+
+                    {/* Next button */}
+                    <button
+                        onClick={() => current < totalPages && onChange(current + 1)}
+                        disabled={current === totalPages}
+                        className={`flex items-center justify-center w-8 h-8 rounded-md transition-all ${
+                            current === totalPages 
+                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                                : 'bg-white text-gray-500 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                        }`}
+                    >
+                        <FaChevronRight className="w-3 h-3" />
+                    </button>
                 </div>
             </div>
         );
-    }
+    };
+
+    const handleSearch = async (value) => {
+        setSearchTerm(value);
+        setIsPageLoading(true);
+        
+        try {
+            const formData = new FormData();
+            const formattedDateRange = Array.isArray(dateRange) 
+                ? `${dateRange[0].format('DD/MM/YYYY')} - ${dateRange[1].format('DD/MM/YYYY')}`
+                : dateRange;
+                
+            formData.append('date_range', formattedDateRange);
+            formData.append('store_id', storeId);
+            formData.append('search_term', value);
+            formData.append('page', 1); // Reset to first page on search
+            formData.append('per_page', pageSize);
+
+            const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_sales_new.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const salesData = await response.json();
+            
+            if (salesData.best_selling_products) {
+                const productsWithDetails = await Promise.all(
+                    salesData.best_selling_products.map(async (product, index) => {
+                        const productDetails = await fetchAllProducts(product.label);
+                        const matchingProduct = productDetails?.[0];
+                        const stockFieldName = getStockFieldName(storeId);
+                        
+                        return {
+                            id: `${product.id || index}`,
+                            name: decodeHtmlEntities(product.label),
+                            ref: matchingProduct ? matchingProduct['Ref. produit'] : '-',
+                            qty_sold: product.qty_sold,
+                            total: parseInt(product.total_ttc.replace(/\s/g, '').replace(',', '.')) || 0,
+                            stock: matchingProduct ? parseInt(matchingProduct[stockFieldName]) || 0 : 0,
+                            num_sales: product.num_sales,
+                            avg_qty_per_sale: product.avg_qty_per_sale,
+                            days_in_range: product.days_in_range
+                        };
+                    })
+                );
+
+                setTopProducts(productsWithDetails);
+                setTotalItems(salesData.best_selling_products.length);
+                setCurrentPage(1); // Reset page on search
+            } else {
+                setTopProducts([]);
+                setTotalItems(0);
+            }
+        } catch (error) {
+            console.error('Search failed:', error);
+            setTopProducts([]);
+            setTotalItems(0);
+        } finally {
+            setIsPageLoading(false);
+        }
+    };
 
     return (
         <div className="flex flex-col h-full p-4 xs:p-5 bg-white shadow-lg rounded-xl">
@@ -439,10 +629,12 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                         type="text"
                         placeholder="Rechercher..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => handleSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-[#F3F3F8] border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#599AED]"
                     />
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <FaSearch className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                        isPageLoading ? 'text-[#599AED] animate-pulse' : 'text-gray-400'
+                    }`} />
                 </div>
                 <button 
                     onClick={exportToExcel}
@@ -453,19 +645,56 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                 </button>
             </div>
 
-            {/* Table */}
-            <div className="flex-1 overflow-hidden">
+            {/* Top Pagination */}
+            {totalItems > 0 && (
+                <PaginationComponent
+                    current={currentPage}
+                    total={totalItems}
+                    pageSize={pageSize}
+                    onChange={handlePageChange}
+                />
+            )}
+
+            {/* Table with loading overlay */}
+            <div className="flex-1 overflow-hidden relative">
                 <BasicTable 
-                    dataSource={filteredProducts}
+                    dataSource={topProducts}
                     columns={getColumns()}
                     rowKey="id"
                     showSorterTooltip={false}
                     pagination={false}
                     size="middle"
-                    className="bestsellers-table h-full"
-                    scroll={{ y: 360 }}
+                    className={`bestsellers-table h-full ${isPageLoading ? 'opacity-50' : ''}`}
+                    scroll={{ y: 1000 }}
                 />
+                
+                {/* Loading overlay */}
+                {isPageLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/30 backdrop-blur-sm">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="relative">
+                                <div className="w-12 h-12 rounded-full border-[3px] border-t-[#599AED] border-r-[#599AED] border-b-[#599AED]/20 border-l-[#599AED]/20 animate-spin"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-full border-[2px] border-t-[#599AED]/30 border-r-[#599AED]/30 border-b-[#599AED] border-l-[#599AED] animate-spin"></div>
+                                </div>
+                            </div>
+                            <span className="text-sm font-medium text-gray-500">
+                                {searchTerm ? 'Recherche en cours...' : 'Chargement des données...'}
+                            </span>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {/* Bottom Pagination */}
+            {totalItems > 0 && (
+                <PaginationComponent
+                    current={currentPage}
+                    total={totalItems}
+                    pageSize={pageSize}
+                    onChange={handlePageChange}
+                />
+            )}
 
             <style jsx global>{`
                 .bestsellers-table .ant-table {
@@ -473,7 +702,13 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                 }
                 .bestsellers-table .ant-table-body {
                     height: ${storeId !== 'all' ? '100% !important' : 'auto'};
-                    max-height: ${storeId !== 'all' ? '1066px !important' : '360px'};
+                    max-height: ${storeId !== 'all' ? 'none !important' : '1000px'};
+                }
+                .bestsellers-table {
+                    height: 100% !important;
+                }
+                .bestsellers-table .ant-table-container {
+                    height: 100% !important;
                 }
                 .bestsellers-table .ant-table-thead > tr > th {
                     background: #F9FAFB !important;
@@ -494,6 +729,96 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                 }
                 .bestsellers-table .ant-table-tbody > tr.ant-table-row:hover > td {
                     background: #F9FAFB !important;
+                }
+
+                .custom-pagination {
+                    padding: 4px;
+                    background: #F3F3F8;
+                    border-radius: 12px;
+                    display: inline-flex;
+                    align-items: center;
+                }
+
+                .custom-pagination .ant-pagination-item {
+                    border-radius: 8px;
+                    border: none;
+                    margin: 0 2px;
+                    min-width: 34px;
+                    height: 34px;
+                    line-height: 34px;
+                    background: transparent;
+                    transition: all 0.2s ease;
+                }
+
+                .custom-pagination .ant-pagination-item a {
+                    color: #4B5563;
+                    font-weight: 500;
+                    transition: all 0.2s ease;
+                }
+
+                .custom-pagination .ant-pagination-item-active {
+                    background: #599AED;
+                    box-shadow: 0 2px 4px rgba(89, 154, 237, 0.15);
+                }
+
+                .custom-pagination .ant-pagination-item-active a {
+                    color: white;
+                }
+
+                .custom-pagination .ant-pagination-prev,
+                .custom-pagination .ant-pagination-next {
+                    border-radius: 8px;
+                    border: none;
+                    min-width: 34px;
+                    height: 34px;
+                    line-height: 34px;
+                    background: transparent;
+                    transition: all 0.2s ease;
+                }
+
+                .custom-pagination .ant-pagination-prev:hover,
+                .custom-pagination .ant-pagination-next:hover {
+                    background: rgba(89, 154, 237, 0.1);
+                }
+
+                .custom-pagination .ant-pagination-prev button,
+                .custom-pagination .ant-pagination-next button {
+                    color: #599AED;
+                }
+
+                .custom-pagination .ant-pagination-disabled {
+                    background: transparent !important;
+                    opacity: 0.4;
+                }
+
+                .custom-pagination .ant-pagination-disabled button {
+                    color: #9CA3AF !important;
+                }
+
+                .custom-pagination .ant-pagination-item:hover:not(.ant-pagination-item-active) {
+                    background: rgba(89, 154, 237, 0.1);
+                }
+
+                .custom-pagination .ant-pagination-item:hover a {
+                    color: #599AED;
+                }
+
+                .custom-pagination .ant-pagination-item-active:hover {
+                    background: #599AED;
+                }
+
+                .custom-pagination .ant-pagination-item-active:hover a {
+                    color: white;
+                }
+
+                .custom-pagination .ant-pagination-jump-prev .ant-pagination-item-container .ant-pagination-item-ellipsis,
+                .custom-pagination .ant-pagination-jump-next .ant-pagination-item-container .ant-pagination-item-ellipsis {
+                    color: #9CA3AF;
+                }
+
+                .custom-pagination .ant-pagination-jump-prev .ant-pagination-item-container .ant-pagination-item-link-icon,
+                .custom-pagination .ant-pagination-jump-next .ant-pagination-item-container .ant-pagination-item-link-icon {
+                    color: #599AED;
                 }
             `}</style>
         </div>

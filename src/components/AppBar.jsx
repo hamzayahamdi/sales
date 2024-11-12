@@ -540,7 +540,7 @@ const AppBar = ({
                         <img 
                             src={salesLogo} 
                             alt="Sales Dashboard" 
-                            className="h-[45px] w-auto object-contain" 
+                            className="h-[45px] w-auto object-contain md:h-[45px] xs:h-[35px]"
                         />
                         
                         {!isMobile && (

@@ -1,12 +1,12 @@
 {
-  "name": "comvi",
+  "name": "sketch sales",
   "version": "1.0.0",
   "private": true,
-  "author": "merkulove <hello@merkulov.design> (https://1.envato.market/tf-merkulove)",
+  "author": "Hamza YAHAMDI",
   "contributors": [
     {
-      "name": "Lilit L.",
-      "email": "lilit@merkulov.design"
+      "name": "HAMZA YAHAMDI",
+      "email": "h.yahamdi@sketch.ma"
     }
   ],
   "copyright": "Merkulove ( https://merkulov.design/ ). All rights reserved.",
@@ -25,11 +25,15 @@
     "@mui/x-date-pickers-pro": "^7.22.0",
     "@phosphor-icons/react": "^2.1.7",
     "@react-spring/web": "^9.6.1",
+    "@tanstack/react-query": "^5.59.20",
+    "@tanstack/react-query-devtools": "^5.59.20",
     "@vitejs/plugin-react": "^4.0.3",
     "antd": "^5.7.3",
     "apexcharts": "^3.41.0",
     "classnames": "^2.3.2",
     "dayjs": "^1.11.13",
+    "framer-motion": "^11.11.11",
+    "lodash": "^4.17.21",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.1",
@@ -45,8 +49,10 @@
     "react-helmet": "^6.1.0",
     "react-helmet-async": "^2.0.5",
     "react-hook-form": "^7.45.2",
+    "react-hot-toast": "^2.4.1",
+    "react-hotkeys-hook": "^4.6.1",
     "react-icons": "^5.3.0",
-    "react-intersection-observer": "^9.5.2",
+    "react-intersection-observer": "^9.13.1",
     "react-lazy-load-image-component": "^1.5.6",
     "react-number-format": "^5.2.2",
     "react-qr-code": "^2.0.11",
@@ -57,7 +63,10 @@
     "react-toastify": "^9.1.1",
     "react-use": "^17.4.0",
     "react-use-measure": "^2.1.1",
+    "react-virtualized-auto-sizer": "^1.0.24",
     "react-visibility-sensor": "^5.1.1",
+    "react-window": "^1.8.10",
+    "react-window-infinite-loader": "^1.0.9",
     "reactjs-social-login": "^2.6.2",
     "recharts": "^2.4.3",
     "redaxios": "^0.5.1",
@@ -76,7 +85,9 @@
   "scripts": {
     "prebuild": "node update-version.js",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "start": "vite",
+    "dev": "vite"
   },
   "eslintConfig": {
     "extends": [

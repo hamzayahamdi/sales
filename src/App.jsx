@@ -15,6 +15,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 // Third-party imports
 import ReactGA from 'react-ga4';
 import { ToastContainer } from 'react-toastify';
+import { Toaster } from 'react-hot-toast';
 
 // Contexts
 import { ThemeProvider } from 'styled-components';
@@ -249,6 +250,7 @@ const App = () => {
                     </ThemeProvider>
                 </LocalizationProvider>
             </MuiThemeProvider>
+            <Toaster position="bottom-right" />
         </HelmetProvider>
     );
 }

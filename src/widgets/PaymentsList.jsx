@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWindowSize } from 'react-use';
-import { FaCreditCard, FaMoneyBillWave, FaUniversity, FaMoneyCheck, FaSearch, FaFileExport } from 'react-icons/fa';
+import { FaCreditCard, FaMoneyBillWave, FaUniversity, FaMoneyCheck, FaSearch, FaFileExport, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
 const STORE_COLORS = {
@@ -32,6 +32,14 @@ const PaymentsList = ({ dateRange, storeId }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [displayedPayments, setDisplayedPayments] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const [isPageLoading, setIsPageLoading] = useState(true);
+    const [isChangingPage, setIsChangingPage] = useState(false);
+    const { width } = useWindowSize();
+    const scrollContainerRef = useRef(null);
+
+    const pageSize = width < 640 ? 10 : 10;
 
     const filteredPayments = useMemo(() => {
         if (!searchTerm) return payments;
@@ -48,8 +56,8 @@ const PaymentsList = ({ dateRange, storeId }) => {
         });
     }, [payments, searchTerm]);
 
-    const fetchPayments = async () => {
-        setIsLoading(true);
+    const fetchPayments = async (page = 1, newSearchTerm = searchTerm) => {
+        setIsPageLoading(true);
         try {
             const formData = new FormData();
             const formattedDateRange = Array.isArray(dateRange) 
@@ -58,8 +66,11 @@ const PaymentsList = ({ dateRange, storeId }) => {
 
             formData.append('date_range', formattedDateRange);
             formData.append('store_id', storeId);
+            formData.append('page', page);
+            formData.append('per_page', pageSize);
+            formData.append('search_term', newSearchTerm);
 
-            const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_sales_new.php', {
+            const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_sales_new1.php', {
                 method: 'POST',
                 body: formData
             });
@@ -69,18 +80,148 @@ const PaymentsList = ({ dateRange, storeId }) => {
             if (data.payments) {
                 setPayments(data.payments);
                 setDisplayedPayments(data.payments);
+                setTotalItems(data.pagination.total_count);
             }
         } catch (error) {
             console.error('Failed to fetch payments:', error);
             setPayments([]);
+            setDisplayedPayments([]);
+            setTotalItems(0);
         } finally {
+            setIsPageLoading(false);
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchPayments();
+        const loadData = async () => {
+            setIsLoading(true);
+            await fetchPayments(1, '');
+        };
+
+        if (dateRange && storeId) {
+            loadData();
+        }
     }, [storeId, dateRange]);
+
+    const handleSearch = useCallback(async (value) => {
+        setSearchTerm(value);
+        setCurrentPage(1);
+        await fetchPayments(1, value);
+    }, [fetchPayments]);
+
+    const handlePageChange = async (page) => {
+        setIsChangingPage(true);
+        setCurrentPage(page);
+        
+        try {
+            await fetchPayments(page);
+        } finally {
+            setTimeout(() => {
+                setIsChangingPage(false);
+            }, 300);
+        }
+        
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    // Pagination Component
+    const PaginationComponent = ({ current, total, pageSize, onChange }) => {
+        const totalPages = Math.ceil(total / pageSize);
+        const startItem = ((current - 1) * pageSize) + 1;
+        const endItem = Math.min(current * pageSize, total);
+
+        const getVisiblePages = () => {
+            const delta = 2;
+            const range = [];
+            const rangeWithDots = [];
+            let l;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= current - delta && i <= current + delta)) {
+                    range.push(i);
+                }
+            }
+
+            range.forEach(i => {
+                if (l) {
+                    if (i - l === 2) {
+                        rangeWithDots.push(l + 1);
+                    } else if (i - l !== 1) {
+                        rangeWithDots.push('...');
+                    }
+                }
+                rangeWithDots.push(i);
+                l = i;
+            });
+
+            return rangeWithDots;
+        };
+
+        return (
+            <div className="flex items-center justify-between py-3 px-1">
+                <div className="text-sm text-gray-500">
+                    <span className="font-medium text-gray-700">{startItem}-{endItem}</span> sur <span className="font-medium text-gray-700">{total}</span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                    <button
+                        onClick={() => current > 1 && onChange(current - 1)}
+                        disabled={current === 1}
+                        className={`flex items-center justify-center w-8 h-8 rounded-md transition-all ${
+                            current === 1 
+                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                                : 'bg-white text-gray-500 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                        }`}
+                    >
+                        <FaChevronLeft className="w-3 h-3" />
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                        {getVisiblePages().map((pageNumber, index) => (
+                            pageNumber === '...' ? (
+                                <div 
+                                    key={`dots-${index}`}
+                                    className="w-8 h-8 flex items-center justify-center text-gray-400"
+                                >
+                                    ⋯
+                                </div>
+                            ) : (
+                                <button
+                                    key={pageNumber}
+                                    onClick={() => onChange(pageNumber)}
+                                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-all ${
+                                        pageNumber === current
+                                            ? 'bg-[#599AED] text-white font-medium border border-[#599AED]'
+                                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-[#599AED] border border-gray-200'
+                                    }`}
+                                >
+                                    {pageNumber}
+                                </button>
+                            )
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={() => current < totalPages && onChange(current + 1)}
+                        disabled={current === totalPages}
+                        className={`flex items-center justify-center w-8 h-8 rounded-md transition-all ${
+                            current === totalPages 
+                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                                : 'bg-white text-gray-500 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                        }`}
+                    >
+                        <FaChevronRight className="w-3 h-3" />
+                    </button>
+                </div>
+            </div>
+        );
+    };
 
     const exportToExcel = () => {
         // Prepare data for export
@@ -105,7 +246,7 @@ const PaymentsList = ({ dateRange, storeId }) => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col h-[700px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
+            <div className="flex flex-col h-[1392px] p-4 xs:p-5 bg-white shadow-lg rounded-xl">
                 <h2 className="text-xl font-semibold mb-4 text-gray-900">Liste des paiements</h2>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="animate-pulse space-y-4 w-full">
@@ -119,7 +260,7 @@ const PaymentsList = ({ dateRange, storeId }) => {
     }
 
     return (
-        <div className="flex flex-col h-[900px] p-4 xs:p-5 bg-white shadow-lg rounded-xl">
+        <div className="flex flex-col h-[1392px] p-4 xs:p-5 bg-white shadow-lg rounded-xl">
             {/* Title */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -153,9 +294,21 @@ const PaymentsList = ({ dateRange, storeId }) => {
                 </button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="space-y-2">
+            {/* Add top pagination */}
+            {totalItems > 0 && (
+                <PaginationComponent
+                    current={currentPage}
+                    total={totalItems}
+                    pageSize={pageSize}
+                    onChange={handlePageChange}
+                />
+            )}
+
+            {/* Content with loading overlay */}
+            <div className="flex-1 overflow-auto relative" ref={scrollContainerRef}>
+                <div className={`grid grid-cols-1 gap-4 px-0 transition-opacity duration-200 ${
+                    isChangingPage ? 'opacity-50' : 'opacity-100'
+                }`}>
                     {filteredPayments.map((payment, index) => {
                         const PaymentIcon = PAYMENT_ICONS[payment.payment_method] || FaMoneyBillWave;
                         const store = STORE_COLORS[getStoreFromInvoiceRef(payment.invoice_ref)];
@@ -197,7 +350,34 @@ const PaymentsList = ({ dateRange, storeId }) => {
                         );
                     })}
                 </div>
+                
+                {/* Loading overlay */}
+                {isChangingPage && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/30 backdrop-blur-[1px]">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="relative">
+                                <div className="w-12 h-12 rounded-full border-[3px] border-t-[#599AED] border-r-[#599AED] border-b-[#599AED]/20 border-l-[#599AED]/20 animate-spin"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-full border-[2px] border-t-[#599AED]/30 border-r-[#599AED]/30 border-b-[#599AED] border-l-[#599AED] animate-spin"></div>
+                                </div>
+                            </div>
+                            <span className="text-sm font-medium text-gray-500">
+                                Chargement...
+                            </span>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {/* Bottom pagination */}
+            {totalItems > 0 && (
+                <PaginationComponent
+                    current={currentPage}
+                    total={totalItems}
+                    pageSize={pageSize}
+                    onChange={handlePageChange}
+                />
+            )}
         </div>
     );
 };

@@ -44,7 +44,7 @@ const users = [
         name: 'Manager Rabat & Outlet',
         role: 'store_manager',
         icon: MdStorefront,
-        password: import.meta.env.VITE_RABAT_PASSWORD,
+        password:import.meta.env.VITE_RABAT_PASSWORD,
         store: '2',
         color: 'from-amber-500 to-amber-600'
     },

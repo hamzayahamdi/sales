@@ -17,14 +17,39 @@ const PERIODS = [
     { value: 'mois', label: 'Mois' }
 ];
 
-// Colors for categories
-const COLORS = [
-    { color: '#5CCFB9', name: 'turquoise' }, // Turquoise for Salon en L
-    { color: '#599AED', name: 'blue' },      // Blue for Chaise
-    { color: '#FFB347', name: 'yellow' },    // Yellow for Ensemble d'Extérieure
-    { color: '#FF9F7B', name: 'peach' },     // Peach for Table Basse
-    { color: '#FF6B6B', name: 'red' }        // Red for Table de Salle à Manger
-];
+// Updated CATEGORY_COLORS with more vibrant colors
+const CATEGORY_COLORS = {
+    'SALON EN L': '#FF3B30',          // Bright Red
+    'SALON EN U': '#007AFF',          // Vivid Blue
+    'CANAPE 2 PLACES': '#5856D6',     // Deep Purple
+    'CANAPE 3 PLACES': '#FF9500',     // Bright Orange
+    'FAUTEUIL': '#4CD964',            // Vibrant Green
+    'CHAISE': '#FF2D55',              // Hot Pink
+    'TABLE DE SALLE A MANGER': '#5AC8FA', // Sky Blue
+    'TABLE BASSE': '#FFCC00',         // Bright Yellow
+    'MEUBLES TV': '#FF3B30',          // Bright Red
+    'TABLE D\'APPOINT': '#007AFF',    // Vivid Blue
+    'BUFFET': '#5856D6',              // Deep Purple
+    'CONSOLE': '#FF9500',             // Bright Orange
+    'BIBLIOTHEQUE': '#4CD964',        // Vibrant Green
+    'LIT': '#FF2D55',                 // Hot Pink
+    'TABLE DE CHEVET': '#5AC8FA',     // Sky Blue
+    'ENSEMBLE D\'EXTERIEURE': '#FFCC00', // Bright Yellow
+    'TRANSAT': '#FF3B30',             // Bright Red
+    'TABLE EXTERIEUR': '#007AFF',     // Vivid Blue
+    'CHAISE EXTERIEUR': '#5856D6',    // Deep Purple
+    'MIROIRS': '#FF9500',             // Bright Orange
+    'POUF': '#4CD964',                // Vibrant Green
+    'TABLEAUX': '#FF2D55',            // Hot Pink
+    'LUMINAIRE-LUXALIGHT': '#5AC8FA', // Sky Blue
+    'COUETTES': '#FFCC00',            // Bright Yellow
+    'MATELAS': '#FF3B30',             // Bright Red
+    'OREILLERS': '#007AFF',           // Vivid Blue
+    'TAPIS': '#5856D6'                // Deep Purple
+};
+
+// Default color for any category not in the mapping
+const DEFAULT_COLOR = '#808080';
 
 const formatLargeNumber = (number) => {
     if (number >= 1000000) {
@@ -53,8 +78,7 @@ const CustomTooltip = ({active, payload}) => {
 
 const LegendItem = ({item, total}) => {
     const {theme} = useTheme();
-    const colorIndex = item.index % COLORS.length;
-    const colorScheme = COLORS[colorIndex];
+    const colorScheme = CATEGORY_COLORS[decodeHtmlEntities(item.category)] || DEFAULT_COLOR;
 
     const percentage = total > 0 ? ((item.value / total) * 100).toFixed(2) : 0;
     
@@ -68,8 +92,9 @@ const LegendItem = ({item, total}) => {
     return (
         <div className="flex gap-2.5">
             <span className="flex items-center justify-center w-[15px] h-[15px] rounded-full mt-1 shrink-0"
-                  style={{backgroundColor: theme === 'dark' ? colorScheme.darkAura : colorScheme.lightAura}}>
-                <span className={`w-[7px] h-[7px] rounded-full bg-${colorScheme.color}`}/>
+                  style={{backgroundColor: theme === 'dark' ? colorScheme : colorScheme}}>
+                <span className="w-[7px] h-[7px] rounded-full" 
+                      style={{backgroundColor: colorScheme}}/>
             </span>
             <div className="flex flex-col flex-1 gap-1">
                 <p className="flex justify-between font-medium text-[15px] text-header">
@@ -116,6 +141,16 @@ const GlobalStyle = () => (
     </style>
 );
 
+// Add a function to normalize category names
+const normalizeCategory = (category) => {
+    return decodeHtmlEntities(category)
+        .trim()
+        .replace(/\s+/g, ' ')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove accents
+        .toUpperCase();
+};
+
 const SalesByCategory = ({ storeId = 'all', dateRange }) => {
     const {width} = useWindowSize();
     const [period, setPeriod] = useState(PERIODS[0]);
@@ -154,21 +189,23 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
             console.log('Revenue by category data:', data.revenue_by_category);
 
             if (data.revenue_by_category) {
-                console.log('Raw category data:', data.revenue_by_category);
                 const formattedData = data.revenue_by_category
                     .filter(item => {
                         const value = parseInt(item.total_revenue.replace(/\s/g, '').replace(',', '.')) || 0;
-                        console.log('Processing category:', item.category, 'value:', value); // Debug log
+                        const normalizedCategory = normalizeCategory(item.category);
+                        console.log('Category:', item.category);
+                        console.log('Normalized:', normalizedCategory);
+                        console.log('Color:', CATEGORY_COLORS[normalizedCategory]);
                         return value > 0;
                     })
                     .map((item, index) => ({
                         category: item.category,
+                        normalizedCategory: normalizeCategory(item.category),
                         value: parseInt(item.total_revenue.replace(/\s/g, '').replace(',', '.')) || 0,
                         percentage: item.percentage,
                         index
                     }));
 
-                console.log('Formatted category data:', formattedData);
                 setCategoryData(formattedData);
             } else {
                 console.log('No revenue_by_category data in response:', data);
@@ -246,41 +283,76 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                     outerRadius={width < 414 ? 118 : 140}
                                     innerRadius={95}
                                     strokeWidth={0}
+                                    activeShape={({ cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill }) => {
+                                        return (
+                                            <g>
+                                                <path 
+                                                    d={`M ${cx},${cy} 
+                                               L ${cx + Math.cos(startAngle) * (outerRadius + 10)},
+                                                 ${cy + Math.sin(startAngle) * (outerRadius + 10)} 
+                                               A ${outerRadius + 10},${outerRadius + 10} 0 0 1 
+                                                 ${cx + Math.cos(endAngle) * (outerRadius + 10)},
+                                                 ${cy + Math.sin(endAngle) * (outerRadius + 10)} Z`}
+                                                    fill={fill}
+                                                    fillOpacity={0.1}
+                                                />
+                                                <path
+                                                    d={`M ${cx},${cy} 
+                                               L ${cx + Math.cos(startAngle) * outerRadius},
+                                                 ${cy + Math.sin(startAngle) * outerRadius} 
+                                               A ${outerRadius},${outerRadius} 0 0 1 
+                                                 ${cx + Math.cos(endAngle) * outerRadius},
+                                                 ${cy + Math.sin(endAngle) * outerRadius} Z`}
+                                                    fill={fill}
+                                                />
+                                            </g>
+                                        );
+                                    }}
                                 >
-                                    {categoryData.map((item, index) => (
+                                    {categoryData.map((item) => (
                                         <Cell 
-                                            key={index} 
-                                            fill={COLORS[index % COLORS.length].color}
+                                            key={item.category} 
+                                            fill={CATEGORY_COLORS[normalizeCategory(item.category)] || DEFAULT_COLOR}
                                         />
                                     ))}
                                 </Pie>
                                 <Tooltip 
-                                    cursor={false} 
+                                    cursor={false}
+                                    isAnimationActive={false}
+                                    position={{ y: 0 }}
                                     content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
+                                            const category = decodeHtmlEntities(payload[0].name);
+                                            const value = payload[0].value;
+                                            const percentage = ((value / getTotal()) * 100).toFixed(2);
+                                            const color = CATEGORY_COLORS[normalizeCategory(category)] || DEFAULT_COLOR;
+                                            
                                             return (
-                                                <div className="bg-[#599AED] p-3 rounded-lg shadow-lg">
-                                                    <p className="text-lg font-bold text-white">
-                                                        {userRole === 'store_manager' && !isMobile 
-                                                            ? '••••• DH'
-                                                            : `${new Intl.NumberFormat('fr-FR', { 
-                                                                minimumFractionDigits: 2, 
-                                                                maximumFractionDigits: 2 
-                                                            }).format(payload[0].value)} DH`
-                                                        }
-                                                    </p>
+                                                <div className="bg-white p-3 rounded-lg shadow-xl border border-gray-100">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span 
+                                                            className="w-3 h-3 rounded-full shrink-0"
+                                                            style={{ backgroundColor: color }}
+                                                        />
+                                                        <p className="text-sm font-medium text-gray-900">
+                                                            {category}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-baseline gap-2">
+                                                        <p className="text-lg font-bold text-gray-900">
+                                                            {userRole === 'store_manager' && !isMobile 
+                                                                ? '••••• DH'
+                                                                : `${new Intl.NumberFormat('fr-FR').format(value)} DH`
+                                                            }
+                                                        </p>
+                                                        <p className="text-sm font-medium text-gray-500">
+                                                            ({percentage}%)
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             );
                                         }
                                         return null;
-                                    }}
-                                    contentStyle={{
-                                        backgroundColor: '#599AED',
-                                        border: 'none',
-                                        color: '#ffffff',
-                                        borderRadius: '8px',
-                                        padding: '12px',
-                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06)'
                                     }}
                                 />
                             </PieChart>
@@ -302,16 +374,20 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                         </div>
                     </div>
 
-                    {/* Categories List - consistent height across all views on mobile */}
+                    {/* Categories List - specific height only for 'all' stores */}
                     <div className={`flex flex-col flex-1 w-full gap-4 overflow-y-auto pr-2
-                        max-h-[294px] md:max-h-[${storeId === 'all' ? '400px' : '294px'}]`}
+                        ${storeId === 'all' 
+                            ? 'md:h-[662px] md:max-h-[662px]' 
+                            : 'max-h-[294px]'}`}
                     >
-                        {categoryData.map((item, index) => (
-                            <div key={index} className="flex gap-3">
+                        {categoryData.map((item) => (
+                            <div key={item.category} className="flex gap-3">
                                 <span className="flex items-center justify-center w-[30px] h-[30px] rounded-full mt-1 shrink-0 bg-gray-100">
                                     <span 
                                         className="w-[15px] h-[15px] rounded-full"
-                                        style={{ backgroundColor: COLORS[index % COLORS.length].color }}
+                                        style={{ 
+                                            backgroundColor: CATEGORY_COLORS[normalizeCategory(item.category)] || DEFAULT_COLOR 
+                                        }}
                                     />
                                 </span>
                                 <div className="flex flex-col flex-1 gap-1.5">
@@ -332,14 +408,16 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                             {((item.value / getTotal()) * 100).toFixed(2)}%
                                         </p>
                                     </div>
-                                    {storeId === 'all' && (
-                                        <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1">
-                                            <div 
-                                                className="h-full rounded-full transition-all duration-500"
-                                                style={{ backgroundColor: COLORS[index % COLORS.length].color }}
-                                            />
-                                        </div>
-                                    )}
+                                    {/* Progress bar now shows for all views */}
+                                    <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+                                        <div 
+                                            className="h-full rounded-full transition-all duration-500"
+                                            style={{ 
+                                                backgroundColor: CATEGORY_COLORS[normalizeCategory(item.category)] || DEFAULT_COLOR,
+                                                width: `${((item.value / getTotal()) * 100)}%`
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         ))}
