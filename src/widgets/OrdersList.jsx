@@ -116,33 +116,46 @@ const OrdersList = ({ dateRange, storeId }) => {
 
     const fetchOrders = async (page = 1, newSearchTerm = searchTerm, status = statusFilter) => {
         try {
-            const formData = new FormData();
             const formattedDateRange = Array.isArray(dateRange) 
                 ? `${dateRange[0].format('DD/MM/YYYY')} - ${dateRange[1].format('DD/MM/YYYY')}`
                 : dateRange;
 
-            formData.append('date_range', formattedDateRange);
-            formData.append('store_id', storeId);
-            formData.append('page', page);
-            formData.append('per_page', pageSize);
-            formData.append('search_term', newSearchTerm);
-            formData.append('status_filter', status);
+            // Create a unique callback name
+            const callbackName = 'jsonpCallback' + Date.now();
 
-            console.log('Fetching orders with params:', {
-                date_range: formattedDateRange,
-                store_id: storeId,
-                page,
-                per_page: pageSize,
-                search_term: newSearchTerm,
-                status_filter: status
+            // Create promise to handle JSONP
+            const jsonpPromise = new Promise((resolve, reject) => {
+                // Add callback to window
+                window[callbackName] = (data) => {
+                    resolve(data);
+                    // Cleanup
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
+
+                // Create script element
+                const script = document.createElement('script');
+                script.src = `https://ratio.sketchdesign.ma/ratio/fetch_orders.php?` + 
+                    `callback=${callbackName}&` +
+                    `date_range=${encodeURIComponent(formattedDateRange)}&` +
+                    `store_id=${encodeURIComponent(storeId)}&` +
+                    `page=${encodeURIComponent(page)}&` +
+                    `per_page=${encodeURIComponent(pageSize)}&` +
+                    `search_term=${encodeURIComponent(newSearchTerm)}&` +
+                    `status_filter=${encodeURIComponent(status)}`;
+
+                // Handle errors
+                script.onerror = () => {
+                    reject(new Error('Failed to load script'));
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
+
+                // Add script to document
+                document.head.appendChild(script);
             });
 
-            const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_orders.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
+            const data = await jsonpPromise;
             
             if (data.error) {
                 console.error('API Error:', data.error);

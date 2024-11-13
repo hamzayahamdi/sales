@@ -55,6 +55,14 @@ const StyledWrapper = styled('div')`
     .border-b .mx-auto {
         width: 100% !important;
     }
+
+    @media screen and (max-width: 414px) {
+        div.flex.flex-col.w-full.\!bg-white div.flex.items-center.justify-between.px-4.py-3.\!bg-white img {
+            height: 35px !important;
+            min-height: 35px !important;
+            max-height: 35px !important;
+        }
+    }
 `;
 
 const UserProfile = () => {
@@ -525,6 +533,26 @@ const AppBar = ({
         }
     });
 
+    useEffect(() => {
+        // Add global style for mobile logo
+        const style = document.createElement('style');
+        style.textContent = `
+            @media screen and (max-width: 414px) {
+                .\\!bg-white img[alt="Sales Dashboard"] {
+                    height: 35px !important;
+                    min-height: 35px !important;
+                    max-height: 35px !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Cleanup
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
     return (
         <StyledWrapper>
             <Helmet>
@@ -540,7 +568,7 @@ const AppBar = ({
                         <img 
                             src={salesLogo} 
                             alt="Sales Dashboard" 
-                            className="h-[45px] w-auto object-contain md:h-[45px] xs:h-[35px]"
+                            className="md:h-[45px] h-[35px] w-auto object-contain sales-logo"
                         />
                         
                         {!isMobile && (
