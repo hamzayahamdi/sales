@@ -51,6 +51,12 @@ const OrdersList = ({ dateRange, storeId }) => {
     const [error, setError] = useState(null);
     const searchInputRef = useRef(null);
     const [isChangingPage, setIsChangingPage] = useState(false);
+    const [totalCounts, setTotalCounts] = useState({
+        total: 0,
+        paye: 0,
+        impaye: 0,
+        avoir: 0
+    });
 
     // Keyboard shortcuts
     useHotkeys('ctrl+f', (e) => {
@@ -108,8 +114,7 @@ const OrdersList = ({ dateRange, storeId }) => {
         fetchOrders(currentPage);
     };
 
-    const fetchOrders = async (page = 1, newSearchTerm = searchTerm) => {
-        setIsPageLoading(true);
+    const fetchOrders = async (page = 1, newSearchTerm = searchTerm, status = statusFilter) => {
         try {
             const formData = new FormData();
             const formattedDateRange = Array.isArray(dateRange) 
@@ -121,7 +126,16 @@ const OrdersList = ({ dateRange, storeId }) => {
             formData.append('page', page);
             formData.append('per_page', pageSize);
             formData.append('search_term', newSearchTerm);
-            formData.append('status_filter', statusFilter);
+            formData.append('status_filter', status);
+
+            console.log('Fetching orders with params:', {
+                date_range: formattedDateRange,
+                store_id: storeId,
+                page,
+                per_page: pageSize,
+                search_term: newSearchTerm,
+                status_filter: status
+            });
 
             const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_orders.php', {
                 method: 'POST',
@@ -129,42 +143,58 @@ const OrdersList = ({ dateRange, storeId }) => {
             });
 
             const data = await response.json();
-            console.log('Orders API Response:', data); // For debugging
+            
+            if (data.error) {
+                console.error('API Error:', data.error);
+                throw new Error(data.message || 'Failed to fetch orders');
+            }
+            
+            console.log('API Response:', data);
             
             if (data.orders) {
                 setOrders(data.orders);
                 setDisplayedOrders(data.orders);
                 setTotalItems(data.total_count);
-                if (data.counters) {
+                
+                if (status === 'all' && !newSearchTerm) {
+                    setTotalCounts(data.counters);
+                    setCounters(data.counters);
+                } else {
                     setCounters({
-                        total: parseInt(data.total_count),
-                        paye: parseInt(data.counters.paye),
-                        impaye: parseInt(data.counters.impaye),
-                        avoir: parseInt(data.counters.avoir)
+                        ...totalCounts,
+                        [status]: data.total_count
                     });
                 }
+            } else {
+                setOrders([]);
+                setDisplayedOrders([]);
+                setTotalItems(0);
             }
         } catch (error) {
             console.error('Failed to fetch orders:', error);
             setOrders([]);
             setDisplayedOrders([]);
             setTotalItems(0);
-            setCounters({
-                total: 0,
-                paye: 0,
-                impaye: 0,
-                avoir: 0
-            });
+            setCounters(totalCounts);
+            setError(error.message);
         } finally {
             setIsPageLoading(false);
             setIsLoading(false);
+            setIsChangingPage(false);
         }
     };
 
     useEffect(() => {
         const loadData = async () => {
             setIsLoading(true);
-            await fetchOrders(1, '');
+            setIsPageLoading(true);
+            setError(null);
+            
+            try {
+                await fetchOrders(1, '', 'all');
+            } catch (error) {
+                console.error('Initial load failed:', error);
+            }
         };
 
         if (dateRange && storeId) {
@@ -297,56 +327,11 @@ const OrdersList = ({ dateRange, storeId }) => {
         await fetchOrders(1, value);
     }, [fetchOrders]);
 
-    const handleStatusFilter = useCallback(async (status) => {
+    const handleStatusFilter = async (status) => {
         setStatusFilter(status);
         setCurrentPage(1);
-        
-        try {
-            const formData = new FormData();
-            const formattedDateRange = Array.isArray(dateRange) 
-                ? `${dateRange[0].format('DD/MM/YYYY')} - ${dateRange[1].format('DD/MM/YYYY')}`
-                : dateRange;
-
-            formData.append('date_range', formattedDateRange);
-            formData.append('store_id', storeId);
-            formData.append('page', 1);
-            formData.append('per_page', pageSize);
-            formData.append('search_term', searchTerm);
-            formData.append('status_filter', status);
-
-            const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_orders.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-            
-            if (data.orders) {
-                setOrders(data.orders);
-                setDisplayedOrders(data.orders);
-                setTotalItems(data.total_count);
-                if (data.counters) {
-                    setCounters({
-                        total: parseInt(data.total_count),
-                        paye: parseInt(data.counters.paye),
-                        impaye: parseInt(data.counters.impaye),
-                        avoir: parseInt(data.counters.avoir)
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Failed to fetch orders:', error);
-            setOrders([]);
-            setDisplayedOrders([]);
-            setTotalItems(0);
-            setCounters({
-                total: 0,
-                paye: 0,
-                impaye: 0,
-                avoir: 0
-            });
-        }
-    }, [dateRange, storeId, searchTerm, pageSize]);
+        await fetchOrders(1, searchTerm, status);
+    };
 
     const PaginationComponent = ({ current, total, pageSize, onChange }) => {
         const totalPages = Math.ceil(total / pageSize);
@@ -440,34 +425,6 @@ const OrdersList = ({ dateRange, storeId }) => {
         );
     };
 
-    // Filter orders based on status
-    const filteredOrders = useMemo(() => {
-        if (!displayedOrders) return [];
-        
-        let filtered = displayedOrders;
-        
-        // Apply status filter
-        if (statusFilter !== 'all') {
-            filtered = filtered.filter(order => {
-                const amount = parseFloat(order.total_invoice_amount);
-                const unpaidAmount = parseFloat(order.amount_unpaid);
-                
-                switch (statusFilter) {
-                    case 'avoir':
-                        return amount < 0;
-                    case 'impaye':
-                        return unpaidAmount > 0;
-                    case 'paye':
-                        return amount >= 0 && unpaidAmount <= 0;
-                    default:
-                        return true;
-                }
-            });
-        }
-
-        return filtered;
-    }, [displayedOrders, statusFilter]);
-
     if (isLoading) {
         return (
             <div className="flex flex-col min-h-fit p-5 xs:p-6 bg-white shadow-lg rounded-xl">
@@ -555,7 +512,7 @@ const OrdersList = ({ dateRange, storeId }) => {
                         className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md flex items-center gap-2"
                     >
                         <span>Tous</span>
-                        <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px]">{totalItems}</span>
+                        <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px]">{totalCounts.total}</span>
                     </button>
                     <button
                         onClick={() => handleStatusFilter('paye')}
@@ -567,7 +524,7 @@ const OrdersList = ({ dateRange, storeId }) => {
                         className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md flex items-center gap-2"
                     >
                         <span>Payé</span>
-                        <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px]">{counters.paye}</span>
+                        <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px]">{totalCounts.paye}</span>
                     </button>
                     <button
                         onClick={() => handleStatusFilter('impaye')}
@@ -579,7 +536,7 @@ const OrdersList = ({ dateRange, storeId }) => {
                         className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md flex items-center gap-2"
                     >
                         <span>Impayé</span>
-                        <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px]">{counters.impaye}</span>
+                        <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px]">{totalCounts.impaye}</span>
                     </button>
                     <button
                         onClick={() => handleStatusFilter('avoir')}
@@ -591,7 +548,7 @@ const OrdersList = ({ dateRange, storeId }) => {
                         className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md flex items-center gap-2"
                     >
                         <span>Avoir</span>
-                        <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px]">{counters.avoir}</span>
+                        <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px]">{totalCounts.avoir}</span>
                     </button>
                 </div>
 
@@ -610,7 +567,7 @@ const OrdersList = ({ dateRange, storeId }) => {
                     <div className={`grid grid-cols-1 gap-4 px-0 transition-opacity duration-200 ${
                         isChangingPage ? 'opacity-50' : 'opacity-100'
                     }`}>
-                        {(filteredOrders || []).map((order) => {
+                        {(displayedOrders || []).map((order) => {
                             const isAvoir = parseFloat(order.total_invoice_amount) < 0;
                             const isUnpaid = parseFloat(order.amount_unpaid) > 0;
                             const isExpanded = expandedInvoices.has(order.invoice_ref);

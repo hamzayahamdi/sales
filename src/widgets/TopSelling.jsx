@@ -27,7 +27,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = storeId === 'all' ? 11 : 16;
+    const pageSize = storeId === 'all' ? 9 : 16;
     const [isPageLoading, setIsPageLoading] = useState(false);
 
     const fetchAllProducts = async (productName) => {

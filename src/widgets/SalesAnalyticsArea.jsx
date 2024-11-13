@@ -329,7 +329,7 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
+            <div className="flex flex-col h-[510px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
                 <h2 className="text-xl font-semibold mb-4 text-gray-900">CA Analytics</h2>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="animate-pulse space-y-4 w-full">
@@ -346,7 +346,7 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
 
     if (userRole === 'store_manager' && !isMobile) {
         return (
-            <div className="flex flex-col h-full p-4 xs:p-5 bg-white shadow-lg rounded-xl">
+            <div className="flex flex-col h-[510px] p-4 xs:p-5 bg-white shadow-lg rounded-xl">
                 {/* Title and Period Selector */}
                 <div className="flex items-center justify-between mb-6">
                     {/* Title */}
@@ -431,7 +431,7 @@ const SalesAnalyticsArea = ({ dateRange, storeId }) => {
     }
 
     return (
-        <div className="flex flex-col h-full p-4 xs:p-5 bg-white shadow-lg rounded-xl">
+        <div className="flex flex-col h-[510px] p-4 xs:p-5 bg-white shadow-lg rounded-xl">
             {/* Title and Period Selector */}
             <div className="flex items-center justify-between mb-6">
                 {/* Title */}

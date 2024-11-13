@@ -377,7 +377,7 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                     {/* Categories List - specific height only for 'all' stores */}
                     <div className={`flex flex-col flex-1 w-full gap-4 overflow-y-auto pr-2
                         ${storeId === 'all' 
-                            ? 'md:h-[662px] md:max-h-[662px]' 
+                            ? 'h-[320px] max-h-[320px] md:h-[662px] md:max-h-[662px]'
                             : 'max-h-[294px]'}`}
                     >
                         {categoryData.map((item) => (

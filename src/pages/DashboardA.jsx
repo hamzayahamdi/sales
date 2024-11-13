@@ -142,10 +142,10 @@ const DashboardA = () => {
                         <>
                             {/* Analytics Section */}
                             <div className="mb-6 flex flex-col gap-4 md:flex-row md:gap-6">
-                                <div className="w-full md:w-[70%] h-[400px] md:h-[500px]">
+                                <div className="w-full md:w-[70%]">
                                     <SalesAnalyticsArea storeId={selectedStoreId} />
                                 </div>
-                                <div className="w-full md:w-[30%] h-[500px]">
+                                <div className="w-full md:w-[30%]">
                                     <SalesByStore 
                                         storeId={selectedStoreId}
                                         dateRange={dateRange}

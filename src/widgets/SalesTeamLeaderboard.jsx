@@ -6,7 +6,7 @@ import BasicTable from '@components/BasicTable';
 import { useState, useEffect, useMemo } from 'react';
 import { useWindowSize } from 'react-use';
 import dayjs from 'dayjs';
-import { FaSearch, FaFileExport, FaUsers } from 'react-icons/fa';
+import { FaSearch, FaFileExport, FaUsers, FaCrown } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
 // Add this helper function to get store color
@@ -143,22 +143,28 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                 return (
                     <div className="flex items-center gap-3">
                         <div className="relative">
-                            {record.rank <= 3 && (
-                                <div className="absolute -top-1.5 -right-1.5 z-10">
-                                    <div className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold shadow-lg
-                                        ${record.rank === 1 ? 'bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-white' : 
-                                          record.rank === 2 ? 'bg-gradient-to-br from-[#599AED] to-[#3B82F6] text-white' : 
-                                          'bg-gradient-to-br from-[#CD7F32] to-[#B87333] text-white'}`}
-                                    >
-                                        #{record.rank}
-                                    </div>
-                                </div>
-                            )}
+                            <div className={`absolute -top-1.5 -right-1.5 z-10 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold shadow-lg
+                                ${record.rank === 1 
+                                    ? 'bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-white' 
+                                    : record.rank === 2 
+                                        ? 'bg-gradient-to-br from-[#599AED] to-[#3B82F6] text-white'
+                                        : record.rank === 3 
+                                            ? 'bg-gradient-to-br from-[#CD7F32] to-[#B87333] text-white'
+                                            : 'bg-gray-200 text-gray-600'}`}
+                            >
+                                {record.rank === 1 
+                                    ? <FaCrown className="w-3 h-3" />
+                                    : `#${record.rank}`
+                                }
+                            </div>
                             <div className={`w-11 h-11 flex items-center justify-center rounded-xl font-bold text-sm shadow-sm
-                                ${record.rank === 1 ? 'bg-gradient-to-br from-[#FFD700]/10 to-[#FFA500]/5 text-[#FFD700]' : 
-                                  record.rank === 2 ? 'bg-gradient-to-br from-[#599AED]/10 to-[#3B82F6]/5 text-[#599AED]' : 
-                                  record.rank === 3 ? 'bg-gradient-to-br from-[#CD7F32]/10 to-[#B87333]/5 text-[#CD7F32]' :
-                                  'bg-[#F3F3F8] text-gray-600'}`}
+                                ${record.rank === 1 
+                                    ? 'bg-gradient-to-br from-amber-500 to-yellow-500 text-white' 
+                                    : record.rank === 2 
+                                        ? 'bg-gradient-to-br from-[#599AED]/10 to-[#3B82F6]/5 text-[#599AED]'
+                                        : record.rank === 3 
+                                            ? 'bg-gradient-to-br from-[#CD7F32]/10 to-[#B87333]/5 text-[#CD7F32]'
+                                            : 'bg-[#F3F3F8] text-gray-600'}`}
                             >
                                 {initials}
                             </div>
@@ -209,22 +215,28 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                 return (
                     <div className="flex items-center gap-4">
                         <div className="relative flex items-center justify-center">
-                            {record.rank <= 3 && (
-                                <div className="absolute -top-2 -right-2 z-10">
-                                    <div className={`w-6 h-6 flex items-center justify-center rounded-full shadow-lg
-                                        ${record.rank === 1 ? 'bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-white' : 
-                                          record.rank === 2 ? 'bg-gradient-to-br from-[#599AED] to-[#3B82F6] text-white' : 
-                                          'bg-gradient-to-br from-[#CD7F32] to-[#B87333] text-white'}`}
-                                    >
-                                        <span className="text-[11px] font-bold">#{record.rank}</span>
-                                    </div>
-                                </div>
-                            )}
+                            <div className={`absolute -top-2 -right-2 z-10 w-6 h-6 flex items-center justify-center rounded-full shadow-lg
+                                ${record.rank === 1 
+                                    ? 'bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-white'
+                                    : record.rank === 2 
+                                        ? 'bg-gradient-to-br from-[#599AED] to-[#3B82F6] text-white'
+                                        : record.rank === 3 
+                                            ? 'bg-gradient-to-br from-[#CD7F32] to-[#B87333] text-white'
+                                            : 'bg-gray-200 text-gray-600'}`}
+                            >
+                                {record.rank === 1 
+                                    ? <FaCrown className="w-3.5 h-3.5" />
+                                    : <span className="text-[11px] font-bold">#{record.rank}</span>
+                                }
+                            </div>
                             <div className={`w-12 h-12 flex items-center justify-center rounded-xl shadow-sm
-                                ${record.rank === 1 ? 'bg-gradient-to-br from-[#FFD700]/10 to-[#FFA500]/5 text-[#FFD700]' : 
-                                  record.rank === 2 ? 'bg-gradient-to-br from-[#599AED]/10 to-[#3B82F6]/5 text-[#599AED]' : 
-                                  record.rank === 3 ? 'bg-gradient-to-br from-[#CD7F32]/10 to-[#B87333]/5 text-[#CD7F32]' :
-                                  'bg-[#F3F3F8] text-gray-600'}`}
+                                ${record.rank === 1 
+                                    ? 'bg-gradient-to-br from-amber-500 to-yellow-500 text-white'
+                                    : record.rank === 2 
+                                        ? 'bg-gradient-to-br from-[#599AED]/10 to-[#3B82F6]/5 text-[#599AED]'
+                                        : record.rank === 3 
+                                            ? 'bg-gradient-to-br from-[#CD7F32]/10 to-[#B87333]/5 text-[#CD7F32]'
+                                            : 'bg-[#F3F3F8] text-gray-600'}`}
                             >
                                 <span className="text-base font-bold">{initials}</span>
                             </div>
@@ -381,12 +393,12 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                 <BasicTable 
                     dataSource={filteredData}
                     columns={width >= 768 ? getDesktopColumns() : getMobileColumns()}
-                    rowKey="name"
+                    rowKey={(record) => record.rank.toString()}
                     showSorterTooltip={false}
                     pagination={false}
                     size="middle"
                     className="sales-team-table h-full"
-                    scroll={{ y: 620 }}
+                    scroll={{ y: 700 }}
                 />
             </div>
             <style jsx global>{`
@@ -403,9 +415,37 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                 .sales-team-table .ant-table-tbody > tr > td {
                     border-bottom: 1px solid #F3F4F6 !important;
                     padding: 12px 16px;
+                    background: transparent !important;
                 }
                 .sales-team-table .ant-table-tbody > tr:hover > td {
                     background: #F9FAFB !important;
+                }
+                
+                /* Special styling for #1 row */
+                .sales-team-table .ant-table-tbody > tr[data-row-key="1"] {
+                    background: linear-gradient(to right, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05)) !important;
+                    position: relative;
+                    margin: 8px 0;
+                }
+                
+                .sales-team-table .ant-table-tbody > tr[data-row-key="1"] td {
+                    background: linear-gradient(to right, #FFF7E6, #FFF9EC) !important;
+                    border-bottom: none !important;
+                }
+                
+                .sales-team-table .ant-table-tbody > tr[data-row-key="1"] td:first-child {
+                    border-left: 4px solid #FFD700;
+                }
+
+                /* Hover effect for #1 */
+                .sales-team-table .ant-table-tbody > tr[data-row-key="1"]:hover td {
+                    background: linear-gradient(to right, #FFF4D9, #FFF7E6) !important;
+                }
+
+                /* Regular styling for other top performers */
+                .sales-team-table .ant-table-tbody > tr[data-row-key="2"],
+                .sales-team-table .ant-table-tbody > tr[data-row-key="3"] {
+                    background: #F8FAFC !important;
                 }
             `}</style>
         </div>

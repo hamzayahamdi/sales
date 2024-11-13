@@ -44,14 +44,27 @@ const StockIndex = ({ storeId = 'all' }) => {
     const [isPageLoading, setIsPageLoading] = useState(true);
     const [isChangingPage, setIsChangingPage] = useState(false);
     const scrollContainerRef = useRef(null);
-    const pageSize = width < 640 ? 7 : (storeId === 'all' ? 14 : 7);
+    const pageSize = width < 640 ? 7 : (storeId === 'all' ? 12 : 8);
 
     const fetchStockData = async (page = 1, search = '') => {
         setIsPageLoading(true);
         try {
             const response = await fetch(
-                `https://ratio.sketchdesign.ma/ratio/fetch_stock_days.php?store_id=${storeId}&page=${page}&per_page=${pageSize}&search=${search}`
+                `https://ratio.sketchdesign.ma/ratio/fetch_stock_days.php?store_id=${storeId}&page=${page}&per_page=${pageSize}&search=${search}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors' // Explicitly set CORS mode
+                }
             );
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
             
             if (data.data) {
@@ -406,7 +419,7 @@ const StockIndex = ({ storeId = 'all' }) => {
                         pagination={false}
                         size="middle"
                         className="stock-index-table h-full"
-                        scroll={{ y: storeId === 'all' ? 1000 : 500 }}
+                        scroll={{ y: width < 768 ? 700 : (storeId === 'all' ? 1000 : 700) }}
                     />
                 </div>
                 

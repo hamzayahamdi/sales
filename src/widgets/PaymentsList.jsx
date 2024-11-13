@@ -39,7 +39,7 @@ const PaymentsList = ({ dateRange, storeId }) => {
     const { width } = useWindowSize();
     const scrollContainerRef = useRef(null);
 
-    const pageSize = width < 640 ? 10 : 10;
+    const pageSize = width < 640 ? 9 : 9;
 
     const filteredPayments = useMemo(() => {
         if (!searchTerm) return payments;

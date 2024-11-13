@@ -104,7 +104,7 @@ const SalesByStore = ({ dateRange, storeId }) => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col h-[500px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
+            <div className="flex flex-col h-[510px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
                 <h2 className="text-xl font-semibold mb-4 text-gray-900">CA par magasin</h2>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="animate-pulse space-y-3 w-full">
@@ -120,7 +120,7 @@ const SalesByStore = ({ dateRange, storeId }) => {
     }
 
     return (
-        <div className="flex flex-col h-[500px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
+        <div className="flex flex-col h-[510px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
             {/* Title */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
