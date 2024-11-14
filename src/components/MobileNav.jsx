@@ -231,8 +231,6 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                     ref={scrollContainerRef}
                     className="flex overflow-x-auto overflow-y-hidden scrollbar-hide gap-3"
                     style={{
-                        scrollSnapType: 'x mandatory',
-                        WebkitOverflowScrolling: 'touch',
                         overscrollBehaviorY: 'none',
                         touchAction: 'pan-x',
                     }}
@@ -246,10 +244,9 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                 key={store.value}
                                 className={`
                                     flex-shrink-0 transition-all duration-500 ease-in-out
-                                    ${isSelected ? 'w-[220px]' : 'w-[100px]'}
+                                    ${isSelected ? 'w-[140px]' : 'w-[100px]'}
                                 `}
                                 style={{ 
-                                    scrollSnapAlign: 'center',
                                     paddingLeft: index === 0 ? '8px' : '0px',
                                     paddingRight: index === STORES.length - 1 ? '8px' : '0px'
                                 }}
