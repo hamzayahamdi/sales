@@ -229,10 +229,12 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
             <div className="bg-gradient-to-r from-[#1E293B] via-[#334155] to-[#1E293B] rounded-xl p-2 shadow-lg">
                 <div 
                     ref={scrollContainerRef}
-                    className="flex overflow-x-auto scrollbar-hide gap-3"
+                    className="flex overflow-x-auto overflow-y-hidden scrollbar-hide gap-3"
                     style={{
                         scrollSnapType: 'x mandatory',
                         WebkitOverflowScrolling: 'touch',
+                        overscrollBehaviorY: 'none',
+                        touchAction: 'pan-x',
                     }}
                 >
                     {STORES.map((store, index) => {
