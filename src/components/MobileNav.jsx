@@ -49,7 +49,10 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
             label: 'Rabat',
             shortLabel: 'Rabat', 
             getStat: () => formatStat(storeSales?.['2'] || 0),
-            cardGradient: 'bg-gradient-to-r from-[#E2E8F0] to-[#94A3B8] !text-gray-900 [&_*]:!text-gray-900',
+            gradient: 'bg-gradient-to-r from-[#22C55E] to-[#16A34A]',
+            cardGradient: isDesktop 
+                ? 'bg-gradient-to-r from-[#E2E8F0] to-[#94A3B8] !text-gray-900 [&_*]:!text-gray-900'
+                : 'bg-gradient-to-r from-white to-[#F8FAFC] !text-gray-900 [&_*]:!text-gray-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)]',
             pulseColor: 'rgba(0, 0, 0, 0.9)',
             pulseBg: 'rgba(0, 0, 0, 0.1)'
         },
@@ -301,7 +304,9 @@ const MobileNav = ({ selectedStoreId, onStoreChange, isDesktop, storeSales = {},
                                         <div className={`
                                             mt-auto px-2 py-0.5 rounded-full text-[10px] font-medium
                                             ${isSelected 
-                                                ? 'bg-white/20 text-white' 
+                                                ? store.value === '2' && !isDesktop
+                                                    ? 'bg-black/5 text-gray-900 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]'
+                                                    : 'bg-white/20 text-white' 
                                                 : 'bg-gray-700 text-gray-200'
                                             }
                                         `}>
