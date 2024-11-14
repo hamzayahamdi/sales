@@ -20,13 +20,13 @@ const SearchInput = ({ searchTerm, setSearchTerm }) => (
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Rechercher par nom, référence ou catégorie..."
-            className="w-full pl-10 pr-4 py-2 bg-[#F3F3F8] border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#599AED]"
+            className="w-full pl-10 pr-10 py-2 bg-[#F3F3F8] border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#599AED]"
         />
         <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         {searchTerm && (
             <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
                 <FaTimes className="w-4 h-4" />
             </button>

@@ -6,7 +6,7 @@ import TopSellingCollapse from '@components/TopSellingCollapse';
 // hooks
 import {useWindowSize} from 'react-use';
 import {useState, useEffect, useMemo, useCallback} from 'react';
-import { FaSearch, FaFileExport, FaChartLine, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaSearch, FaFileExport, FaChartLine, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
 import { TbArrowBadgeUpFilled, TbArrowBadgeDownFilled } from 'react-icons/tb';
 import * as XLSX from 'xlsx';
 import { Pagination } from 'antd';
@@ -550,6 +550,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
     const handleSearch = async (value) => {
         setSearchTerm(value);
         setIsPageLoading(true);
+        setCurrentPage(1); // Reset to first page
         
         try {
             const formData = new FormData();
@@ -560,7 +561,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
             formData.append('date_range', formattedDateRange);
             formData.append('store_id', storeId);
             formData.append('search_term', value);
-            formData.append('page', 1); // Reset to first page on search
+            formData.append('page', 1); // Always send first page on search
             formData.append('per_page', pageSize);
 
             const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_sales_new.php', {
@@ -571,8 +572,11 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
             const salesData = await response.json();
             
             if (salesData.best_selling_products) {
+                // Only take pageSize number of items for the first page
+                const paginatedProducts = salesData.best_selling_products.slice(0, pageSize);
+                
                 const productsWithDetails = await Promise.all(
-                    salesData.best_selling_products.map(async (product, index) => {
+                    paginatedProducts.map(async (product, index) => {
                         const productDetails = await fetchAllProducts(product.label);
                         const matchingProduct = productDetails?.[0];
                         const stockFieldName = getStockFieldName(storeId);
@@ -593,7 +597,6 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
 
                 setTopProducts(productsWithDetails);
                 setTotalItems(salesData.best_selling_products.length);
-                setCurrentPage(1); // Reset page on search
             } else {
                 setTopProducts([]);
                 setTotalItems(0);
@@ -606,6 +609,13 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
             setIsPageLoading(false);
         }
     };
+
+    // Add a useEffect to handle empty search
+    useEffect(() => {
+        if (searchTerm === '') {
+            fetchTopProducts(1);
+        }
+    }, [searchTerm]);
 
     return (
         <div className="flex flex-col h-full p-4 xs:p-5 bg-white shadow-lg rounded-xl">
@@ -630,11 +640,19 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                         placeholder="Rechercher..."
                         value={searchTerm}
                         onChange={(e) => handleSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-[#F3F3F8] border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#599AED]"
+                        className="w-full pl-10 pr-10 py-2 bg-[#F3F3F8] border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#599AED]"
                     />
                     <FaSearch className={`absolute left-3 top-1/2 -translate-y-1/2 ${
                         isPageLoading ? 'text-[#599AED] animate-pulse' : 'text-gray-400'
                     }`} />
+                    {searchTerm && (
+                        <button
+                            onClick={() => handleSearch('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            <FaTimes className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
                 <button 
                     onClick={exportToExcel}

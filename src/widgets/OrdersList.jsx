@@ -244,24 +244,152 @@ const OrdersList = ({ dateRange, storeId }) => {
         );
     };
 
-    const exportToExcel = () => {
-        const exportData = orders.map(order => ({
-            'Référence': order.invoice_ref,
-            'Date': order.invoice_date,
-            'Client': order.client_name,
-            'Téléphone': order.client_phone,
-            'ICE': order.client_ice || 'N/A',
-            'Commercial': order.commercial_name,
-            'Total TTC': order.total_invoice_amount,
-            'Reliquat': order.amount_unpaid,
-            'Status': parseFloat(order.amount_unpaid) > 0 ? 'Non payé' : 'Payé'
-        }));
+    // Add a function to get store name
+    const getStoreName = (storeId) => {
+        switch(storeId) {
+            case '1':
+                return 'Casa';
+            case '2':
+                return 'Rabat';
+            case '5':
+                return 'Tanger';
+            case '6':
+                return 'Marrakech';
+            case '10':
+                return 'Outlet';
+            case 'all':
+                return 'Tous_les_magasins';
+            default:
+                return `Magasin_${storeId}`;
+        }
+    };
 
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(exportData);
+    // Update the filename generation in exportToExcel function
+    const exportToExcel = async () => {
+        setIsPageLoading(true);
+        try {
+            const formData = new FormData();
+            const dateRangeFormatted = Array.isArray(dateRange) 
+                ? `${dateRange[0].format('DD/MM/YYYY')} - ${dateRange[1].format('DD/MM/YYYY')}`
+                : dateRange;
+            
+            formData.append('date_range', dateRangeFormatted);
+            formData.append('store_id', storeId);
+            formData.append('status_filter', statusFilter);
+            formData.append('search_term', searchTerm);
 
-        XLSX.utils.book_append_sheet(wb, ws, "Factures");
-        XLSX.writeFile(wb, `factures_${storeId}_${dateRange}.xlsx`);
+            const response = await fetch('https://ratio.sketchdesign.ma/ratio/export_orders.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Export failed');
+            }
+
+            const data = await response.json();
+            
+            if (!data.orders || !Array.isArray(data.orders)) {
+                throw new Error('Invalid data received from server');
+            }
+
+            const ws_data = [
+                ['Date', 'Commercial', 'Client', 'Tél Client', 'ICE', 'Ref. Bon de caisse', 'Notes', 'Produits', 'Total TTC', 'ENCAISSÉ', 'Reliquats', 'TPE', 'Espece', 'Virement', 'Cheque']
+            ];
+
+            // Process each order
+            data.orders.forEach(order => {
+                // Process products
+                const productsList = order.items.map(item => {
+                    const productLabel = decodeHtmlEntities(item.product_label);
+                    const description = item.invoice_description ? 
+                        ` (${decodeHtmlEntities(item.invoice_description)})` : '';
+                    const quantity = item.qty_sold ? ` x${item.qty_sold}` : '';
+                    return `${productLabel}${description}${quantity}`;
+                }).join(' + ');
+
+                // Process payments
+                let carteBancaire = '', espece = '', virement = '', cheque = '';
+                if (order.payment_details) {
+                    order.payment_details.split(', ').forEach(payment => {
+                        const [method, amount] = payment.split(': ');
+                        switch(method) {
+                            case 'Carte bancaire':
+                                carteBancaire = amount;
+                                break;
+                            case 'Espèce':
+                                espece = amount;
+                                break;
+                            case 'Virement':
+                                virement = amount;
+                                break;
+                            case 'Chèque':
+                                cheque = amount;
+                                break;
+                        }
+                    });
+                }
+
+                const row = [
+                    order.invoice_date,
+                    order.commercial_name,
+                    order.client_name,
+                    order.client_phone,
+                    order.client_ice || 'N/A',
+                    order.invoice_ref,
+                    order.private_note || 'N/A',
+                    productsList,
+                    order.total_invoice_amount,
+                    order.amount_paid,
+                    order.amount_unpaid,
+                    carteBancaire,
+                    espece,
+                    virement,
+                    cheque
+                ];
+
+                ws_data.push(row);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+            // Set column widths
+            const colWidths = [
+                { wch: 12 },  // Date
+                { wch: 20 },  // Commercial
+                { wch: 25 },  // Client
+                { wch: 15 },  // Phone
+                { wch: 15 },  // ICE
+                { wch: 15 },  // Ref
+                { wch: 30 },  // Notes
+                { wch: 50 },  // Products
+                { wch: 12 },  // Total
+                { wch: 12 },  // Paid
+                { wch: 12 },  // Unpaid
+                { wch: 12 },  // TPE
+                { wch: 12 },  // Cash
+                { wch: 12 },  // Transfer
+                { wch: 12 }   // Check
+            ];
+            ws['!cols'] = colWidths;
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Factures');
+
+            // Update this part
+            const storeName = getStoreName(storeId);
+            const filenameDateRange = Array.isArray(dateRange) 
+                ? `${dateRange[0].format('DD-MM-YYYY')}_${dateRange[1].format('DD-MM-YYYY')}`
+                : dateRange.replace(/\//g, '-');
+            
+            XLSX.writeFile(wb, `bons_de_caisse_${storeName}_${filenameDateRange}.xlsx`);
+
+        } catch (error) {
+            console.error('Export failed:', error);
+            // You might want to show an error toast here
+        } finally {
+            setIsPageLoading(false);
+        }
     };
 
     // Add these CSS keyframes at the top of your file
@@ -483,19 +611,14 @@ const OrdersList = ({ dateRange, storeId }) => {
                         <FaSearch className={`absolute left-3 top-1/2 -translate-y-1/2 ${
                             isPageLoading ? 'text-[#599AED] animate-pulse' : 'text-gray-400'
                         }`} />
-                        <AnimatePresence>
-                            {searchTerm && (
-                                <motion.button
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.8 }}
-                                    onClick={() => handleSearch('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    <FaTimes className="w-4 h-4" />
-                                </motion.button>
-                            )}
-                        </AnimatePresence>
+                        {searchTerm && (
+                            <button
+                                onClick={() => handleSearch('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <FaTimes className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
                     <button 
                         onClick={exportToExcel}

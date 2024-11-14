@@ -1,8 +1,12 @@
+// Add this import at the top with other imports
+import * as XLSX from 'xlsx';
+
 // components
 import Spring from '@components/Spring';
 import Select from '@ui/Select';
 import {ResponsiveContainer, Tooltip, Pie, PieChart, Cell} from 'recharts';
-import { FaChartPie } from 'react-icons/fa';
+import { FaChartPie, FaFileExport } from 'react-icons/fa';
+import { pieArcLabelClasses } from '@mui/x-charts/PieChart';
 
 // hooks
 import {useState, useEffect} from 'react';
@@ -19,33 +23,34 @@ const PERIODS = [
 
 // Updated CATEGORY_COLORS with more vibrant colors
 const CATEGORY_COLORS = {
-    'SALON EN L': '#FF3B30',          // Bright Red
-    'SALON EN U': '#007AFF',          // Vivid Blue
-    'CANAPE 2 PLACES': '#5856D6',     // Deep Purple
-    'CANAPE 3 PLACES': '#FF9500',     // Bright Orange
-    'FAUTEUIL': '#4CD964',            // Vibrant Green
-    'CHAISE': '#FF2D55',              // Hot Pink
-    'TABLE DE SALLE A MANGER': '#5AC8FA', // Sky Blue
-    'TABLE BASSE': '#FFCC00',         // Bright Yellow
-    'MEUBLES TV': '#FF3B30',          // Bright Red
-    'TABLE D\'APPOINT': '#007AFF',    // Vivid Blue
-    'BUFFET': '#5856D6',              // Deep Purple
-    'CONSOLE': '#FF9500',             // Bright Orange
-    'BIBLIOTHEQUE': '#4CD964',        // Vibrant Green
-    'LIT': '#FF2D55',                 // Hot Pink
-    'TABLE DE CHEVET': '#5AC8FA',     // Sky Blue
-    'ENSEMBLE D\'EXTERIEURE': '#FFCC00', // Bright Yellow
-    'TRANSAT': '#FF3B30',             // Bright Red
-    'TABLE EXTERIEUR': '#007AFF',     // Vivid Blue
-    'CHAISE EXTERIEUR': '#5856D6',    // Deep Purple
-    'MIROIRS': '#FF9500',             // Bright Orange
-    'POUF': '#4CD964',                // Vibrant Green
-    'TABLEAUX': '#FF2D55',            // Hot Pink
-    'LUMINAIRE-LUXALIGHT': '#5AC8FA', // Sky Blue
-    'COUETTES': '#FFCC00',            // Bright Yellow
-    'MATELAS': '#FF3B30',             // Bright Red
-    'OREILLERS': '#007AFF',           // Vivid Blue
-    'TAPIS': '#5856D6'                // Deep Purple
+'SALON EN L': '#88CCEE',          // Light Blue (Colorblind Friendly)
+'SALON EN U': '#332288',          // Dark Purple (Colorblind Friendly)
+'CANAPE 2 PLACES': '#44AA99',     // Teal (Colorblind Friendly)
+'CANAPE 3 PLACES': '#DDCC77',     // Light Yellow (Colorblind Friendly)
+'FAUTEUIL': '#CC6677',            // Red-Pink (Colorblind Friendly)
+'CHAISE': '#117733',              // Green (Colorblind Friendly)
+'TABLE DE SALLE A MANGER': '#AA4499', // Purple-Pink (Colorblind Friendly)
+'TABLE BASSE': '#882255',         // Burgundy (Colorblind Friendly)
+'MEUBLES TV': '#999933',          // Olive (Colorblind Friendly)
+'TABLE D\'APPOINT': '#6699CC',    // Sky Blue (Colorblind Friendly)
+'BUFFET': '#661100',              // Deep Red (Colorblind Friendly)
+'CONSOLE': '#F2AD00',             // Gold (Colorblind Friendly)
+'BIBLIOTHEQUE': '#E17C05',        // Orange (Colorblind Friendly)
+'LIT': '#56B4E9',                 // Light Blue (Colorblind Friendly)
+'TABLE DE CHEVET': '#984EA3',     // Purple (Colorblind Friendly)
+'ENSEMBLE D\'EXTERIEURE': '#4DAF4A', // Green (Colorblind Friendly)
+'TRANSAT': '#D55E00',             // Red-Orange (Colorblind Friendly)
+'TABLE EXTERIEUR': '#CC79A7',     // Pink (Colorblind Friendly)
+'CHAISE EXTERIEUR': '#A6761D',    // Brown (Colorblind Friendly)
+'MIROIRS': '#E41A1C',             // Bright Red (Colorblind Friendly)
+'POUF': '#377EB8',                // Blue (Colorblind Friendly)
+'TABLEAUX': '#FF7F00',            // Bright Orange (Colorblind Friendly)
+'LUMINAIRE-LUXALIGHT': '#999999', // Gray (Colorblind Friendly)
+'COUETTES': '#F781BF',            // Light Pink (Colorblind Friendly)
+'MATELAS': '#4DAF4A',             // Green (Colorblind Friendly)
+'OREILLERS': '#A65628',           // Brown (Colorblind Friendly)
+'TAPIS': '#984EA3'                // Purple (Colorblind Friendly)
+
 };
 
 // Default color for any category not in the mapping
@@ -60,21 +65,40 @@ const formatLargeNumber = (number) => {
     return number.toFixed(2);
 };
 
-const CustomTooltip = ({active, payload}) => {
+const CustomTooltip = ({ active, payload, userRole, isMobile }) => {
     if (active && payload && payload.length) {
+        const category = decodeHtmlEntities(payload[0].name);
+        const value = payload[0].value;
+        const percentage = ((value / payload[0].payload.total) * 100).toFixed(2);
+        const color = CATEGORY_COLORS[normalizeCategory(category)] || DEFAULT_COLOR;
+        
         return (
-            <div className="p-3">
-                <div className="text-white font-medium">
-                    {new Intl.NumberFormat('fr-FR', { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
-                    }).format(payload[0].value)} DH
+            <div className="bg-white p-3 rounded-lg shadow-xl border border-gray-100">
+                <div className="flex items-center gap-2 mb-1">
+                    <span 
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: color }}
+                    />
+                    <p className="text-sm font-medium text-gray-900">
+                        {category}
+                    </p>
+                </div>
+                <div className="flex items-baseline gap-2">
+                    <p className="text-lg font-bold text-gray-900">
+                        {userRole === 'store_manager' && !isMobile 
+                            ? '••••• DH'
+                            : `${new Intl.NumberFormat('fr-FR').format(value)} DH`
+                        }
+                    </p>
+                    <p className="text-sm font-medium text-gray-500">
+                        ({percentage}%)
+                    </p>
                 </div>
             </div>
         );
     }
     return null;
-}
+};
 
 const LegendItem = ({item, total}) => {
     const {theme} = useTheme();
@@ -130,16 +154,6 @@ const decodeHtmlEntities = (text) => {
     
     return decodedText;
 };
-
-const GlobalStyle = () => (
-    <style>
-        {`
-            .space-y-6 .px-4 .grid .flex-col .md\\:items-center .md\\:self-center .justify-center .justify-center .counter-wrapper span {
-                color: #111827 !important;
-            }
-        `}
-    </style>
-);
 
 // Add a function to normalize category names
 const normalizeCategory = (category) => {
@@ -227,6 +241,29 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
         return categoryData.reduce((acc, curr) => acc + curr.value, 0);
     }
 
+    const exportToExcel = () => {
+        const exportData = categoryData.map(item => ({
+            'Catégorie': decodeHtmlEntities(item.category),
+            'Chiffre d\'affaires': `${new Intl.NumberFormat('fr-FR').format(item.value)} DH`,
+            'Pourcentage': `${((item.value / getTotal()) * 100).toFixed(2)}%`
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+
+        XLSX.utils.book_append_sheet(wb, ws, "CA par catégorie");
+        XLSX.writeFile(wb, `ca_par_categorie_${storeId}_${dateRange}.xlsx`);
+    };
+
+    const preparePieChartData = () => {
+        return categoryData.map(item => ({
+            id: item.category,
+            value: item.value,
+            label: decodeHtmlEntities(item.category),
+            color: CATEGORY_COLORS[normalizeCategory(item.category)] || DEFAULT_COLOR
+        }));
+    };
+
     if (isLoading) {
         return (
             <div className="flex flex-col h-[400px] p-5 xs:p-6 bg-white shadow-lg rounded-xl">
@@ -246,10 +283,9 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
 
     return (
         <>
-            <GlobalStyle />
             <div className="flex flex-col h-full p-5 xs:p-6 bg-white shadow-lg rounded-xl">
                 {/* Updated Title Section */}
-                <div className="flex items-center mb-6">
+                <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#599AED]/10">
                             <FaChartPie className="w-5 h-5 text-[#599AED]" />
@@ -259,23 +295,37 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                             <p className="text-sm text-gray-500 mt-0.5">Répartition des ventes par catégorie</p>
                         </div>
                     </div>
+                    <button 
+                        onClick={exportToExcel}
+                        className="p-2 bg-[#F3F3F8] text-[#599AED] hover:bg-[#599AED] hover:text-white rounded-lg transition-colors shrink-0"
+                        title="Exporter en Excel"
+                    >
+                        <FaFileExport size={20} />
+                    </button>
                 </div>
                 
-                {/* Content with conditional layout */}
-                <div className={`flex flex-col items-start gap-6 flex-1 
-                    ${storeId === 'all' ? 'md:flex-row md:items-center' : 'md:flex-row md:items-start'}
-                    md:gap-[65px] overflow-hidden`}
-                >
-                    {/* Chart Section */}
-                    <div className={`relative shrink-0 min-h-[240px] min-w-[240px] 
-                        xs:min-w-[294px] xs:min-h-[294px] m-auto md:m-0 
+                {/* Content with conditional layout - Updated for vertical centering */}
+                <div className={`
+                    flex flex-col items-start gap-6 flex-1 
+                    ${storeId === 'all' 
+                        ? 'md:flex-row md:items-center' 
+                        : 'md:flex-row md:items-center justify-center'}
+                    md:gap-[65px] overflow-hidden
+                `}>
+                    {/* Chart Section - Updated margin for individual stores */}
+                    <div className={`
+                        relative shrink-0 min-h-[240px] min-w-[240px] 
+                        xs:min-w-[294px] xs:min-h-[294px] 
+                        m-auto md:m-0 
                         md:w-[294px] md:h-[294px]
-                        ${storeId === 'all' ? 'md:self-center' : ''}`}
-                    >
+                    `}>
                         <ResponsiveContainer width="99%" height="99%">
                             <PieChart>
                                 <Pie 
-                                    data={categoryData}
+                                    data={categoryData.map(item => ({
+                                        ...item,
+                                        total: getTotal() // Add total to each item for percentage calculation
+                                    }))}
                                     dataKey="value"
                                     nameKey="category"
                                     cx="50%"
@@ -283,31 +333,6 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                     outerRadius={width < 414 ? 118 : 140}
                                     innerRadius={95}
                                     strokeWidth={0}
-                                    activeShape={({ cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill }) => {
-                                        return (
-                                            <g>
-                                                <path 
-                                                    d={`M ${cx},${cy} 
-                                               L ${cx + Math.cos(startAngle) * (outerRadius + 10)},
-                                                 ${cy + Math.sin(startAngle) * (outerRadius + 10)} 
-                                               A ${outerRadius + 10},${outerRadius + 10} 0 0 1 
-                                                 ${cx + Math.cos(endAngle) * (outerRadius + 10)},
-                                                 ${cy + Math.sin(endAngle) * (outerRadius + 10)} Z`}
-                                                    fill={fill}
-                                                    fillOpacity={0.1}
-                                                />
-                                                <path
-                                                    d={`M ${cx},${cy} 
-                                               L ${cx + Math.cos(startAngle) * outerRadius},
-                                                 ${cy + Math.sin(startAngle) * outerRadius} 
-                                               A ${outerRadius},${outerRadius} 0 0 1 
-                                                 ${cx + Math.cos(endAngle) * outerRadius},
-                                                 ${cy + Math.sin(endAngle) * outerRadius} Z`}
-                                                    fill={fill}
-                                                />
-                                            </g>
-                                        );
-                                    }}
                                 >
                                     {categoryData.map((item) => (
                                         <Cell 
@@ -318,55 +343,24 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                                 </Pie>
                                 <Tooltip 
                                     cursor={false}
-                                    isAnimationActive={false}
-                                    position={{ y: 0 }}
-                                    content={({ active, payload }) => {
-                                        if (active && payload && payload.length) {
-                                            const category = decodeHtmlEntities(payload[0].name);
-                                            const value = payload[0].value;
-                                            const percentage = ((value / getTotal()) * 100).toFixed(2);
-                                            const color = CATEGORY_COLORS[normalizeCategory(category)] || DEFAULT_COLOR;
-                                            
-                                            return (
-                                                <div className="bg-white p-3 rounded-lg shadow-xl border border-gray-100">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span 
-                                                            className="w-3 h-3 rounded-full shrink-0"
-                                                            style={{ backgroundColor: color }}
-                                                        />
-                                                        <p className="text-sm font-medium text-gray-900">
-                                                            {category}
-                                                        </p>
-                                                    </div>
-                                                    <div className="flex items-baseline gap-2">
-                                                        <p className="text-lg font-bold text-gray-900">
-                                                            {userRole === 'store_manager' && !isMobile 
-                                                                ? '••••• DH'
-                                                                : `${new Intl.NumberFormat('fr-FR').format(value)} DH`
-                                                            }
-                                                        </p>
-                                                        <p className="text-sm font-medium text-gray-500">
-                                                            ({percentage}%)
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    }}
+                                    content={(props) => (
+                                        <CustomTooltip 
+                                            {...props} 
+                                            userRole={userRole} 
+                                            isMobile={isMobile}
+                                        />
+                                    )}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-center m-auto justify-center">
-                                <div className="counter-wrapper">
-                                    <span className="counter block whitespace-nowrap text-[32px] font-bold">
-                                        {userRole === 'store_manager' && !isMobile 
-                                            ? '•••••' 
-                                            : formatLargeNumber(getTotal())
-                                        }
-                                    </span>
-                                </div>
+                            <div className="text-center">
+                                <span className="block whitespace-nowrap text-[32px] font-bold text-gray-900">
+                                    {userRole === 'store_manager' && !isMobile 
+                                        ? '•••••' 
+                                        : formatLargeNumber(getTotal())
+                                    }
+                                </span>
                                 <span className="block text-[18px] font-medium text-gray-500">
                                     DH
                                 </span>
@@ -374,12 +368,13 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                         </div>
                     </div>
 
-                    {/* Categories List - specific height only for 'all' stores */}
-                    <div className={`flex flex-col flex-1 w-full gap-4 overflow-y-auto pr-2
+                    {/* Categories List - Updated height for individual stores */}
+                    <div className={`
+                        flex flex-col flex-1 w-full gap-4 overflow-y-auto pr-2
                         ${storeId === 'all' 
                             ? 'h-[320px] max-h-[320px] md:h-[662px] md:max-h-[662px]'
-                            : 'max-h-[294px]'}`}
-                    >
+                            : 'h-[294px] max-h-[294px] md:h-[294px]'}
+                    `}>
                         {categoryData.map((item) => (
                             <div key={item.category} className="flex gap-3">
                                 <span className="flex items-center justify-center w-[30px] h-[30px] rounded-full mt-1 shrink-0 bg-gray-100">
