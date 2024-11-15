@@ -406,7 +406,7 @@ const SalesTeamLeaderboard = ({ storeId = 'all', dateRange }) => {
                     pagination={false}
                     size="middle"
                     className="sales-team-table h-full"
-                    scroll={{ y: 700 }}
+                    scroll={{ y: storeId === 'all' ? 350 : 1020 }}
                 />
             </div>
             <style jsx global>{`

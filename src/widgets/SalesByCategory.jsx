@@ -306,18 +306,19 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                 
                 {/* Content with conditional layout - Updated for vertical centering */}
                 <div className={`
-                    flex flex-col items-start gap-6 flex-1 
+                    flex flex-col items-center gap-6 flex-1 
                     ${storeId === 'all' 
-                        ? 'md:flex-row md:items-center' 
+                        ? 'md:flex-row md:items-center md:justify-center'
                         : 'md:flex-row md:items-center justify-center'}
-                    md:gap-[65px] overflow-hidden
+                    md:gap-[65px] overflow-hidden h-full
                 `}>
-                    {/* Chart Section - Updated margin for individual stores */}
+                    {/* Chart Section - Updated margin and width for better centering */}
                     <div className={`
                         relative shrink-0 min-h-[240px] min-w-[240px] 
                         xs:min-w-[294px] xs:min-h-[294px] 
                         m-auto md:m-0 
                         md:w-[294px] md:h-[294px]
+                        ${storeId === 'all' ? 'md:self-center' : ''}
                     `}>
                         <ResponsiveContainer width="99%" height="99%">
                             <PieChart>
@@ -368,12 +369,12 @@ const SalesByCategory = ({ storeId = 'all', dateRange }) => {
                         </div>
                     </div>
 
-                    {/* Categories List - Updated height for individual stores */}
+                    {/* Categories List - Updated width for better balance */}
                     <div className={`
                         flex flex-col flex-1 w-full gap-4 overflow-y-auto pr-2
                         ${storeId === 'all' 
-                            ? 'h-[320px] max-h-[320px] md:h-[662px] md:max-h-[662px]'
-                            : 'h-[294px] max-h-[294px] md:h-[294px]'}
+                            ? 'h-[320px] max-h-[320px] md:h-[350px] md:max-h-[400px] md:max-w-[500px] md:self-center'
+                            : 'h-[294px] max-h-[294px] md:h-[350px] md:max-h-[400px]'}
                     `}>
                         {categoryData.map((item) => (
                             <div key={item.category} className="flex gap-3">

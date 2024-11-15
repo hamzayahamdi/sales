@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import BasicTable from '@components/BasicTable';
 import { useWindowSize } from 'react-use';
-import { FaSearch, FaFileExport, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaSearch, FaFileExport, FaTimes, FaChevronLeft, FaChevronRight, FaBox } from 'react-icons/fa';
 import { TbAlertSquareRoundedFilled } from 'react-icons/tb';
 import * as XLSX from 'xlsx';
 
@@ -9,9 +9,48 @@ const CATEGORIES = [
     'Salon en L', 'Salon en U', 'Canapé 2 Places', 'Canapé 3 Places', 'Fauteuil', 
     'Chaise', 'Table de Salle à Manger', 'Table Basse', 'Meubles TV', "Table d'Appoint",
     'Buffet', 'Console', 'Bibliothèque', 'Lit', 'Table de Chevet', "Ensemble d'Extérieur",
-    'Transat', 'Table Extérieur', 'Chaise Extérieur', 'Miroirs', 'Pouf', 'Tableaux',
+    'Transat', 'Table Extérieur', 'Chaise Extérieur', 'Miroirs', 'Pouf', 'Tableau', 'Tableaux',
     'Luminaire-Luxalight', 'Couettes', 'Matelas', 'Oreillers', 'Tapis'
 ];
+
+const parseProductDetails = (fullName) => {
+    // Remove commas and normalize text
+    const normalizedInput = fullName
+        .replace(/,/g, '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+    const normalizedCategories = CATEGORIES.map(cat => ({
+        original: cat,
+        normalized: cat.toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+    }));
+
+    let productName = '';
+    let category = '';
+    let dimensions = '';
+
+    const foundCategory = normalizedCategories.find(cat => 
+        normalizedInput.includes(cat.normalized)
+    );
+    
+    if (foundCategory) {
+        const parts = normalizedInput.split(foundCategory.normalized);
+        productName = parts[0].trim();
+        dimensions = parts[1]?.trim() || '';
+        category = foundCategory.original;
+    } else {
+        productName = fullName;
+    }
+
+    return {
+        productName: productName.toUpperCase(),
+        category: category,
+        dimensions: dimensions.toUpperCase()
+    };
+};
 
 const SearchInput = ({ searchTerm, setSearchTerm }) => (
     <div className="relative flex-1">
@@ -44,7 +83,8 @@ const StockIndex = ({ storeId = 'all' }) => {
     const [isPageLoading, setIsPageLoading] = useState(true);
     const [isChangingPage, setIsChangingPage] = useState(false);
     const scrollContainerRef = useRef(null);
-    const pageSize = width < 640 ? 7 : (storeId === 'all' ? 12 : 8);
+    const pageSize = width < 640 ? 7 : (storeId === 'all' ? 11 : 10);
+    const [productImages, setProductImages] = useState({});
 
     const fetchStockData = async (page = 1, search = '') => {
         setIsPageLoading(true);
@@ -81,8 +121,42 @@ const StockIndex = ({ storeId = 'all' }) => {
         }
     };
 
+    const fetchProductImages = async () => {
+        try {
+            const response = await fetch('https://docs.google.com/spreadsheets/d/1mWNxfuTYDho--Z5qCzvBErN2w0ZNBelND6rdzPAyC90/gviz/tq');
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch spreadsheet data');
+            }
+
+            const text = await response.text();
+            // Extract the JSON part from the response
+            const jsonStart = text.indexOf('{');
+            const jsonEnd = text.lastIndexOf('}') + 1;
+            const jsonString = text.slice(jsonStart, jsonEnd);
+            const data = JSON.parse(jsonString);
+
+            // Create mapping of product refs to image URLs
+            const imageMapping = {};
+            data.table.rows.forEach(row => {
+                if (row.c && row.c[3] && row.c[7]) {
+                    const ref = row.c[3].v?.toString().trim(); // Product ref (4th column)
+                    const imageUrl = row.c[7].v?.toString().trim(); // Image URL (8th column)
+                    if (ref && imageUrl) {
+                        imageMapping[ref] = imageUrl;
+                    }
+                }
+            });
+
+            setProductImages(imageMapping);
+        } catch (error) {
+            console.error('Failed to fetch product images:', error);
+        }
+    };
+
     useEffect(() => {
         fetchStockData(1, searchTerm);
+        fetchProductImages();
     }, [storeId, searchTerm]);
 
     const handlePageChange = async (page) => {
@@ -145,35 +219,78 @@ const StockIndex = ({ storeId = 'all' }) => {
                     title: 'PRODUIT',
                     dataIndex: 'name',
                     key: 'name',
-                    width: '60%',
-                    render: (text, record) => (
-                        <div className="flex flex-col">
-                            <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold text-gray-900 truncate">{text}</span>
-                                    <span className="shrink-0 px-2 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-600 rounded-lg">
-                                        {new Intl.NumberFormat('fr-FR').format(record.price)} DH
-                                    </span>
+                    width: '55%',
+                    render: (text, record) => {
+                        const details = parseProductDetails(text);
+                        const words = details.productName.split(' ');
+                        const firstWord = words[0];
+                        const remainingWords = words.slice(1).join(' ');
+                        
+                        return (
+                            <div className="flex items-start gap-2">
+                                <div className="w-12 h-12 rounded-xl overflow-hidden bg-white relative shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.08)]">
+                                    {productImages[record.ref] ? (
+                                        <img 
+                                            src={productImages[record.ref]} 
+                                            alt={text}
+                                            className="w-full h-full object-contain p-1"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-white">
+                                            <FaBox className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                                        REF-{record.ref}
-                                    </span>
-                                    <span className="text-[10px] font-medium text-[#599AED] bg-[#599AED]/10 px-1.5 py-0.5 rounded">
-                                        {record.category}
-                                    </span>
+                                <div className="flex flex-col min-w-0 flex-1">
+                                    <div className="flex flex-col gap-0.5">
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-sm font-semibold text-gray-900 truncate">
+                                                {firstWord}
+                                                {remainingWords && (
+                                                    <span className="text-[11px] bg-gradient-to-r from-gray-50 to-gray-100 px-1 rounded"> {remainingWords}</span>
+                                                )}
+                                                {details.dimensions && (
+                                                    <span className="text-[11px] bg-gradient-to-r from-gray-50 to-gray-100 px-1 rounded ml-1">{details.dimensions}</span>
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[10px] text-gray-400">REF: {record.ref}</span>
+                                            {details.category && (
+                                                <span className="text-[10px] font-medium bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 px-1.5 py-0.5 rounded-full w-fit border border-gray-200">
+                                                    {details.category}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )
+                        );
+                    }
                 },
                 {
-                    title: 'JOURS DE STOCK',
+                    title: 'PRIX & STOCK',
                     dataIndex: 'days_in_stock',
                     key: 'days_in_stock',
-                    width: '40%',
+                    width: '45%',
                     align: 'right',
-                    render: (days) => getStockStatus(days)
+                    render: (days, record) => (
+                        <div className="flex flex-col items-end gap-1.5">
+                            <div className="w-[140px] h-[32px] flex items-center bg-[#F3F3F8] rounded-lg p-1">
+                                <div className="flex items-center justify-center w-[65px] h-[24px] bg-amber-500 text-white rounded-md">
+                                    <span className="text-[11px] font-medium">{new Intl.NumberFormat('fr-FR').format(record.price)} DH</span>
+                                </div>
+                                <div className="flex items-center justify-center w-[40px] h-[24px] ml-1 bg-[#599AED] text-white rounded-md">
+                                    <span className="text-[11px] font-medium">{record.current_stock}</span>
+                                </div>
+                            </div>
+                            {getStockStatus(days)}
+                        </div>
+                    )
                 }
             ];
         }
@@ -184,38 +301,77 @@ const StockIndex = ({ storeId = 'all' }) => {
                 dataIndex: 'name',
                 key: 'name',
                 width: '40%',
-                render: (text, record) => (
-                    <div className="flex items-start gap-3">
-                        <div className="flex flex-col flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900 truncate">{text}</span>
-                                <span className="shrink-0 px-2 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-600 rounded-lg">
-                                    {new Intl.NumberFormat('fr-FR').format(record.price)} DH
-                                </span>
+                render: (text, record) => {
+                    const details = parseProductDetails(text);
+                    
+                    // Split product name into words
+                    const words = details.productName.split(' ');
+                    const firstWord = words[0];
+                    const remainingWords = words.slice(1).join(' ');
+                    
+                    return (
+                        <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-white relative shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.08)]">
+                                {productImages[record.ref] ? (
+                                    <img 
+                                        src={productImages[record.ref]} 
+                                        alt={text}
+                                        className="w-full h-full object-contain p-1"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-white">
+                                        <FaBox className="w-8 h-8 text-gray-400" />
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex items-center gap-1.5 mt-1">
-                                <span className="text-[10px] font-medium text-gray-400">REF-{record.ref}</span>
-                                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                <span className="text-[10px] font-medium text-[#599AED]">{record.category}</span>
+                            <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-[15px] text-gray-900">
+                                        {firstWord}
+                                        {remainingWords && (
+                                            <span className="text-[12px] bg-gradient-to-r from-gray-50 to-gray-100 px-1 rounded"> {remainingWords}</span>
+                                        )}
+                                        {details.dimensions && (
+                                            <span className="text-[12px] bg-gradient-to-r from-gray-50 to-gray-100 px-1 rounded ml-1">{details.dimensions}</span>
+                                        )}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-gray-400">REF: {record.ref}</span>
+                                    {details.category && (
+                                        <span className="text-[10px] font-medium bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 px-2 py-0.5 rounded-full w-fit border border-gray-200">
+                                            {details.category}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )
+                    );
+                }
             },
             {
-                title: 'STOCK & VENTES',
+                title: 'PRIX & STOCK & VENTES',
                 dataIndex: 'stock',
                 key: 'stock',
                 width: '25%',
                 align: 'center',
                 render: (_, record) => (
-                    <div className="flex items-center justify-center">
-                        <div className="w-[200px] h-[38px] flex items-center bg-[#F3F3F8] rounded-lg p-1">
-                            <div className="flex items-center justify-center w-[70px] h-[30px] bg-[#599AED] text-white rounded-md">
-                                <span className="text-sm font-semibold">{record.current_stock}</span>
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="w-[200px] h-[34px] flex items-center bg-[#F3F3F8] rounded-lg p-1">
+                            <div className="flex items-center justify-center w-[80px] h-[26px] bg-amber-500 text-white rounded-md">
+                                <span className="text-xs font-medium">{new Intl.NumberFormat('fr-FR').format(record.price)} DH</span>
                             </div>
-                            <div className="flex items-center justify-center flex-1 h-[30px] ml-1 bg-gray-200 text-gray-700 rounded-md">
-                                <span className="text-[11px] font-medium">{record.sales_4_weeks} ventes</span>
+                            <div className="flex items-center justify-center flex-1 h-[26px] ml-1">
+                                <div className="flex items-center justify-center w-[50px] h-[26px] bg-[#599AED] text-white rounded-md">
+                                    <span className="text-xs font-medium">{record.current_stock}</span>
+                                </div>
+                                <div className="flex items-center justify-center flex-1 h-[26px] ml-1 bg-gray-200 text-gray-700 rounded-md">
+                                    <span className="text-[11px] font-medium">{record.sales_4_weeks} ventes</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -419,7 +575,7 @@ const StockIndex = ({ storeId = 'all' }) => {
                         pagination={false}
                         size="middle"
                         className="stock-index-table h-full"
-                        scroll={{ y: width < 768 ? 700 : (storeId === 'all' ? 1000 : 700) }}
+                        scroll={{ y: width < 768 ? 900 : (storeId === 'all' ? 1000 : 900) }}
                     />
                 </div>
                 

@@ -18,6 +18,7 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline'
 import { FaUserCircle, FaSignOutAlt, FaStore, FaUserShield, FaCalculator } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useWindowSize } from 'react-use';
+import { TbClockHour4 } from "react-icons/tb";
 
 // assets
 import salesLogo from '../sales.svg';
@@ -61,6 +62,23 @@ const StyledWrapper = styled('div')`
             height: 35px !important;
             min-height: 35px !important;
             max-height: 35px !important;
+        }
+
+        /* Items center */
+        .items-start .items-center {
+            margin-top: 0px !important;
+        }
+        
+        /* Justify between */
+        .\!bg-white .justify-between {
+            padding-bottom: 0px !important;
+            padding-right: 5px !important;
+            padding-left: 5px !important;
+        }
+
+        /* Additional style for timestamp container */
+        .date-picker-container .flex.items-center {
+            margin-top: 0px !important;
         }
     }
 `;
@@ -180,7 +198,8 @@ const AppBar = ({
     selectedStoreId,
     onStoreChange,
     storeSales = {},
-    loading = false
+    loading = false,
+    lastUpdated = '2024-03-21 09:30'
 }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -244,6 +263,9 @@ const AppBar = ({
         backgroundColor: '#ffffff !important',
         '.min-h-screen': {
             backgroundColor: '#ffffff !important'
+        },
+        '@media (max-width: 414px)': {
+            padding: '0 !important'
         }
     };
 
@@ -278,7 +300,7 @@ const AppBar = ({
             border: 'none',
             width: '100%',
             minWidth: '185px',
-            maxWidth: '200px',
+            maxWidth: '185px',
             userSelect: 'none',
             WebkitUserSelect: 'none',
             MozUserSelect: 'none',
@@ -500,6 +522,11 @@ const AppBar = ({
         };
     }, []);
 
+    const formatLastUpdated = (timestamp) => {
+        const date = dayjs(timestamp);
+        return `${date.format('DD/MM/YYYY')} à ${date.format('HH:mm')}`;
+    };
+
     return (
         <StyledWrapper>
             <Helmet>
@@ -511,7 +538,7 @@ const AppBar = ({
             </Helmet>
             <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200" style={headerStyles}>
                 <div className="flex flex-col w-full !bg-white">
-                    <div className="flex items-center justify-between px-4 py-3 !bg-white">
+                    <div className="flex items-center justify-between px-4 py-3 !bg-white md:px-4 md:py-3">
                         <img 
                             src={salesLogo} 
                             alt="Sales Dashboard" 
@@ -530,9 +557,9 @@ const AppBar = ({
                             </div>
                         )}
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-start gap-3 pr-12">
                             {!isMobile && <UserProfile />}
-                            <div className="relative date-picker-container flex items-center">
+                            <div className="relative date-picker-container flex flex-col">
                                 <Box sx={datePickerStyles}>
                                     <ThemeProvider theme={datePickerTheme}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="fr">
@@ -567,21 +594,26 @@ const AppBar = ({
                                     </ThemeProvider>
                                 </Box>
 
-                                {/* Dropdown Button - Updated styling */}
+                                {!isMobile && (
+                                    <div className="flex items-center gap-1.5 mt-1.5 ml-1 text-[11px] text-gray-500 mobile-timestamp">
+                                        <TbClockHour4 className="w-3.5 h-3.5" />
+                                        <span>Mis à jour le {formatLastUpdated(lastUpdated)}</span>
+                                    </div>
+                                )}
+
                                 <button
                                     onClick={() => {
                                         if (!calendarOpen) {
                                             setShortcutsOpen(!shortcutsOpen);
                                         }
                                     }}
-                                    className="ml-2 p-2 rounded-md bg-[#599AED] hover:bg-[#4080d4] transition-colors"
+                                    className="absolute right-[-44px] top-0 p-2 rounded-md bg-[#599AED] hover:bg-[#4080d4] transition-colors"
                                 >
                                     <ChevronDownIcon 
                                         className={`w-5 h-5 text-white transition-transform duration-200 ${shortcutsOpen ? 'rotate-180' : ''}`}
                                     />
                                 </button>
 
-                                {/* Animated Shortcuts Dropdown - Updated positioning */}
                                 <Transition
                                     show={shortcutsOpen && !calendarOpen}
                                     enter="transition ease-out duration-200"
@@ -590,7 +622,7 @@ const AppBar = ({
                                     leave="transition ease-in duration-150"
                                     leaveFrom="transform opacity-100 scale-100"
                                     leaveTo="transform opacity-0 scale-95"
-                                    className="absolute right-0 top-full mt-2 w-56 origin-top-right z-50"
+                                    className="absolute right-[-44px] top-[44px] w-56 origin-top-right z-50"
                                 >
                                     <div className="bg-[#599AED] rounded-lg shadow-xl py-1">
                                         {shortcuts.map((shortcut) => (

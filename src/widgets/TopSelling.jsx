@@ -80,7 +80,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = storeId === 'all' ? 9 : 17;
+    const pageSize = width < 640 ? 10 : (storeId === 'all' ? 11 : 25);  
     const [isPageLoading, setIsPageLoading] = useState(false);
     const [productImages, setProductImages] = useState({});
     const [deliveryFees, setDeliveryFees] = useState(0);
@@ -338,6 +338,11 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                     render: (text, record) => {
                         const details = parseProductDetails(text);
                         
+                        // Split product name into words
+                        const words = details.productName.split(' ');
+                        const firstWord = words[0];
+                        const remainingWords = words.slice(1).join(' ');
+                        
                         return (
                             <div className="flex items-start gap-3 py-2">
                                 <div className="w-14 h-14 rounded-xl overflow-hidden bg-white relative shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.08)]">
@@ -361,16 +366,15 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                                     <div className="flex flex-col gap-1">
                                         <div className="flex items-center gap-2">
                                             <h3 className="font-semibold text-[13px] text-gray-900 leading-tight">
-                                                {details.productName}
+                                                {firstWord}
+                                                {remainingWords && (
+                                                    <span className="text-[12px] bg-gradient-to-r from-gray-50 to-gray-100 px-1 rounded"> {remainingWords}</span>
+                                                )}
+                                                {details.dimensions && (
+                                                    <span className="text-[12px] bg-gradient-to-r from-gray-50 to-gray-100 px-1 rounded ml-1">{details.dimensions}</span>
+                                                )}
                                             </h3>
                                         </div>
-                                        {details.dimensions && (
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="text-[11px] font-medium bg-gradient-to-r from-[#599AED] to-[#3B82F6] text-white px-2 py-0.5 rounded-md shadow-sm">
-                                                    {details.dimensions}
-                                                </span>
-                                            </div>
-                                        )}
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-[10px] text-gray-400">REF: {record.ref}</span>
@@ -417,6 +421,11 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                 render: (text, record) => {
                     const details = parseProductDetails(text);
                     
+                    // Split product name into words
+                    const words = details.productName.split(' ');
+                    const firstWord = words[0];
+                    const remainingWords = words.slice(1).join(' ');
+                    
                     return (
                         <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-xl overflow-hidden bg-white relative shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.08)]">
@@ -439,13 +448,14 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                             <div className="flex flex-col gap-1.5">
                                 <div className="flex items-center gap-2">
                                     <span className="font-semibold text-[15px] text-gray-900">
-                                        {details.productName}
+                                        {firstWord}
+                                        {remainingWords && (
+                                            <span className="text-[12px] bg-gradient-to-r from-gray-50 to-gray-100 px-1 rounded"> {remainingWords}</span>
+                                        )}
+                                        {details.dimensions && (
+                                            <span className="text-[12px] bg-gradient-to-r from-gray-50 to-gray-100 px-1 rounded ml-1">{details.dimensions}</span>
+                                        )}
                                     </span>
-                                    {details.dimensions && (
-                                        <span className="font-semibold text-[15px] text-gray-900">
-                                            {details.dimensions}
-                                        </span>
-                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] text-gray-400">REF: {record.ref}</span>
