@@ -87,6 +87,7 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
     const userRole = localStorage.getItem('userRole');
     const canSeeDeliveryFees = ['admin', 'comptabilite'].includes(userRole);
     const [deliveryCount, setDeliveryCount] = useState(0);
+    const isMobile = width < 768;
 
     const fetchAllProducts = async (productName) => {
         try {
@@ -868,11 +869,13 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                                         <span className="text-sm font-semibold text-[#6366F1]">
                                             {formatCurrency(deliveryFees)}
                                         </span>
-                                        <div className="flex items-center gap-1">
-                                            <span className="text-[10px] font-medium text-[#6366F1]/70 bg-[#6366F1]/5 px-1.5 py-0.5 rounded-full">
-                                                {deliveryCount} livraisons
-                                            </span>
-                                        </div>
+                                        {!isMobile && (
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-[10px] font-medium text-[#6366F1]/70 bg-[#6366F1]/5 px-1.5 py-0.5 rounded-full">
+                                                    {deliveryCount} livraisons
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
