@@ -133,7 +133,7 @@ const UserProfile = () => {
         <div className={`fixed ${isMobile ? 'top-[84px]' : 'bottom-4'} right-4 z-50`} ref={profileRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-8 h-8 rounded-full bg-[#599AED] hover:bg-[#4080d4] transition-colors flex items-center justify-center shadow-lg"
+                className="w-8 h-8 rounded-full bg-gradient-to-r from-[#599AED] to-[#3B82F6] hover:from-[#4080d4] hover:to-[#2563EB] transition-all duration-300 flex items-center justify-center shadow-lg"
             >
                 <FaUserCircle className="w-4 h-4 text-white" />
             </button>
@@ -148,7 +148,7 @@ const UserProfile = () => {
                 leaveTo="transform opacity-0 scale-95"
                 className={`absolute ${isMobile ? 'top-full' : 'bottom-full'} right-0 ${isMobile ? 'mt-2' : 'mb-2'} w-48 origin-${isMobile ? 'top' : 'bottom'}-right`}
             >
-                <div className="bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 divide-y divide-gray-100">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg ring-1 ring-black/5 divide-y divide-gray-100">
                     <div className="p-3">
                         <div className="text-sm font-medium text-gray-900">{userName}</div>
                         {userStore !== 'all' && (

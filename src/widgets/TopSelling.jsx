@@ -6,7 +6,7 @@ import TopSellingCollapse from '@components/TopSellingCollapse';
 // hooks
 import {useWindowSize} from 'react-use';
 import {useState, useEffect, useMemo, useCallback} from 'react';
-import { FaSearch, FaFileExport, FaChartLine, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaFileExport, FaChartLine, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight, FaTimes, FaBox, FaTruck } from 'react-icons/fa';
 import { TbArrowBadgeUpFilled, TbArrowBadgeDownFilled } from 'react-icons/tb';
 import * as XLSX from 'xlsx';
 import { Pagination } from 'antd';
@@ -19,6 +19,59 @@ const getFrequencyLabel = (frequency) => {
     return 'Rare';
 };
 
+// Add this helper function to split product details
+const parseProductDetails = (fullName) => {
+    const CATEGORIES = [
+        'Salon en L', 'Salon en U', 'Canapé 2 Places', 'Canapé 3 Places', 'Fauteuil', 
+        'Chaise', 'Table de Salle à Manger', 'Table Basse', 'Meubles TV', "Table d'Appoint",
+        'Buffet', 'Console', 'Bibliothque', 'Lit', 'Table de Chevet', "Ensemble d'Extérieur",
+        'Transat', 'Table Extérieur', 'Chaise Extérieur', 'Miroirs', 'Pouf', 'Tableaux',
+        'Luminaire-Luxalight', 'Couettes', 'Matelas', 'Oreillers', 'Tapis'
+    ];
+
+    // Remove commas and normalize text
+    const normalizedInput = fullName
+        .replace(/,/g, '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+    const normalizedCategories = CATEGORIES.map(cat => ({
+        original: cat,
+        normalized: cat.toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+    }));
+
+    let productName = '';
+    let category = '';
+    let dimensions = '';
+
+    const foundCategory = normalizedCategories.find(cat => 
+        normalizedInput.includes(cat.normalized)
+    );
+    
+    if (foundCategory) {
+        const parts = normalizedInput.split(foundCategory.normalized);
+        productName = parts[0].trim();
+        dimensions = parts[1]?.trim() || '';
+        category = foundCategory.original;
+    } else {
+        productName = fullName;
+    }
+
+    return {
+        productName: productName.toUpperCase(),
+        category: category,
+        dimensions: dimensions.toUpperCase()
+    };
+};
+
+// Add this function to format currency
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('fr-FR').format(amount) + ' DH';
+};
+
 const TopSelling = ({ storeId = 'all', dateRange }) => {
     const {width} = useWindowSize();
     const [activeCollapse, setActiveCollapse] = useState('');
@@ -27,8 +80,13 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = storeId === 'all' ? 9 : 16;
+    const pageSize = storeId === 'all' ? 9 : 17;
     const [isPageLoading, setIsPageLoading] = useState(false);
+    const [productImages, setProductImages] = useState({});
+    const [deliveryFees, setDeliveryFees] = useState(0);
+    const userRole = localStorage.getItem('userRole');
+    const canSeeDeliveryFees = ['admin', 'comptabilite'].includes(userRole);
+    const [deliveryCount, setDeliveryCount] = useState(0);
 
     const fetchAllProducts = async (productName) => {
         try {
@@ -277,12 +335,55 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                     dataIndex: 'name',
                     key: 'name',
                     width: '60%',
-                    render: (text, record) => (
-                        <div className="flex flex-col py-2">
-                            <span className="font-medium text-gray-900">{text}</span>
-                            <span className="mt-1 text-xs font-medium text-gray-400">REF-{record.ref}</span>
-                        </div>
-                    )
+                    render: (text, record) => {
+                        const details = parseProductDetails(text);
+                        
+                        return (
+                            <div className="flex items-start gap-3 py-2">
+                                <div className="w-14 h-14 rounded-xl overflow-hidden bg-white relative shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.08)]">
+                                    {productImages[record.ref] ? (
+                                        <img 
+                                            src={productImages[record.ref]} 
+                                            alt={text}
+                                            className="w-full h-full object-contain p-1"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-white">
+                                            <FaBox className="w-6 h-6 text-gray-400" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-col min-w-0 flex-1">
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="font-semibold text-[13px] text-gray-900 leading-tight">
+                                                {details.productName}
+                                            </h3>
+                                        </div>
+                                        {details.dimensions && (
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-[11px] font-medium bg-gradient-to-r from-[#599AED] to-[#3B82F6] text-white px-2 py-0.5 rounded-md shadow-sm">
+                                                    {details.dimensions}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-[10px] text-gray-400">REF: {record.ref}</span>
+                                        {details.category && (
+                                            <span className="text-[10px] font-medium bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 px-2 py-0.5 rounded-full w-fit border border-gray-200">
+                                                {details.category}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
                 },
                 {
                     title: 'VENTES',
@@ -294,11 +395,11 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                         <div className="flex flex-col items-end gap-2">
                             <div className="text-right">
                                 <div className="text-lg font-semibold text-gray-900">
-                                    {record.qty_sold || 0}
-                                    <span className="ml-1 text-sm text-gray-400">pcs</span>
+                                    {new Intl.NumberFormat('fr-FR').format(record.total)} DH
                                 </div>
                                 <div className="text-sm font-medium text-gray-500">
-                                    {new Intl.NumberFormat('fr-FR').format(record.total)} DH
+                                    {record.qty_sold || 0}
+                                    <span className="ml-1 text-xs text-gray-400">pcs</span>
                                 </div>
                             </div>
                         </div>
@@ -309,20 +410,55 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
 
         return [
             {
-                title: 'PRODUIT',
+                title: 'Produit',
                 dataIndex: 'name',
                 key: 'name',
-                width: '50%',
-                render: (text, record) => (
-                    <div className="flex flex-col py-2">
-                        <span className="font-medium text-gray-900">{text}</span>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="px-2 py-0.5 text-xs font-medium text-gray-500 bg-gray-100 rounded-md">
-                                REF-{record.ref}
-                            </span>
+                width: '40%',
+                render: (text, record) => {
+                    const details = parseProductDetails(text);
+                    
+                    return (
+                        <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-white relative shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.08)]">
+                                {productImages[record.ref] ? (
+                                    <img 
+                                        src={productImages[record.ref]} 
+                                        alt={text}
+                                        className="w-full h-full object-contain p-1"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-white">
+                                        <FaBox className="w-8 h-8 text-gray-400" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-[15px] text-gray-900">
+                                        {details.productName}
+                                    </span>
+                                    {details.dimensions && (
+                                        <span className="font-semibold text-[15px] text-gray-900">
+                                            {details.dimensions}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-gray-400">REF: {record.ref}</span>
+                                    {details.category && (
+                                        <span className="text-[10px] font-medium bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 px-2 py-0.5 rounded-full w-fit border border-gray-200">
+                                            {details.category}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                )
+                    );
+                }
             },
             {
                 title: `VENTES & STOCK ${storeId === '1' ? 'CASA' : 
@@ -617,6 +753,88 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
         }
     }, [searchTerm]);
 
+    // Update the fetchProductImages function
+    const fetchProductImages = async () => {
+        try {
+            const response = await fetch('https://docs.google.com/spreadsheets/d/1mWNxfuTYDho--Z5qCzvBErN2w0ZNBelND6rdzPAyC90/gviz/tq');
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch spreadsheet data');
+            }
+
+            const text = await response.text();
+            // Extract the JSON part from the response
+            const jsonStart = text.indexOf('{');
+            const jsonEnd = text.lastIndexOf('}') + 1;
+            const jsonString = text.slice(jsonStart, jsonEnd);
+            const data = JSON.parse(jsonString);
+
+            // Create mapping of product refs to image URLs
+            const imageMapping = {};
+            data.table.rows.forEach(row => {
+                if (row.c && row.c[3] && row.c[7]) {
+                    const ref = row.c[3].v?.toString().trim(); // Product ref (4th column)
+                    const imageUrl = row.c[7].v?.toString().trim(); // Image URL (8th column)
+                    if (ref && imageUrl) {
+                        imageMapping[ref] = imageUrl;
+                    }
+                }
+            });
+
+            console.log('Fetched image mapping:', imageMapping); // Debug log
+            setProductImages(imageMapping);
+        } catch (error) {
+            console.error('Failed to fetch product images:', error);
+        }
+    };
+
+    // Make sure fetchProductImages is called when component mounts
+    useEffect(() => {
+        fetchProductImages();
+    }, []); // Empty dependency array means it runs once when component mounts
+
+    // Update the useEffect for fetching delivery fees
+    useEffect(() => {
+        const fetchDeliveryFees = async () => {
+            try {
+                const formData = new FormData();
+                const formattedDateRange = Array.isArray(dateRange) 
+                    ? `${dateRange[0].format('DD/MM/YYYY')} - ${dateRange[1].format('DD/MM/YYYY')}`
+                    : dateRange;
+                    
+                formData.append('date_range', formattedDateRange);
+                formData.append('store_id', storeId);
+                formData.append('search_term', 'frais de livraison');
+
+                const response = await fetch('https://ratio.sketchdesign.ma/ratio/fetch_sales_new.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.best_selling_products?.length > 0) {
+                    const totalDeliveryFees = data.best_selling_products.reduce((sum, product) => 
+                        sum + parseInt(product.total_ttc.replace(/\s/g, '').replace(',', '.')) || 0, 0);
+                    setDeliveryFees(totalDeliveryFees);
+                    // Set delivery count from the data
+                    setDeliveryCount(data.best_selling_products.reduce((sum, product) => 
+                        sum + parseInt(product.qty_sold) || 0, 0));
+                } else {
+                    setDeliveryFees(0);
+                    setDeliveryCount(0);
+                }
+            } catch (error) {
+                console.error('Failed to fetch delivery fees:', error);
+                setDeliveryFees(0);
+                setDeliveryCount(0);
+            }
+        };
+
+        if (canSeeDeliveryFees) {
+            fetchDeliveryFees();
+        }
+    }, [storeId, dateRange]);
+
     return (
         <div className="flex flex-col h-full p-4 xs:p-5 bg-white shadow-lg rounded-xl">
             {/* Title section */}
@@ -630,6 +848,27 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                         <p className="text-sm text-gray-500 mt-0.5">Top produits par ventes</p>
                     </div>
                 </div>
+                {canSeeDeliveryFees && (
+                    <div className="flex items-center gap-2">
+                        <div className="px-3 py-2 rounded-lg bg-[#EEF2FF] flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                                <FaTruck className="w-4 h-4 text-[#6366F1]" />
+                                <div className="flex flex-col">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-sm font-semibold text-[#6366F1]">
+                                            {formatCurrency(deliveryFees)}
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-[10px] font-medium text-[#6366F1]/70 bg-[#6366F1]/5 px-1.5 py-0.5 rounded-full">
+                                                {deliveryCount} livraisons
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Search and Export */}
@@ -838,9 +1077,20 @@ const TopSelling = ({ storeId = 'all', dateRange }) => {
                 .custom-pagination .ant-pagination-jump-next .ant-pagination-item-container .ant-pagination-item-link-icon {
                     color: #599AED;
                 }
+
+                @keyframes shine {
+                    from {
+                        transform: translateX(-100%) rotate(45deg);
+                    }
+                    to {
+                        transform: translateX(100%) rotate(45deg);
+                    }
+                }
+                .animate-shine {
+                    animation: shine 2s infinite linear;
+                }
             `}</style>
         </div>
     );
 };
-
 export default TopSelling;
