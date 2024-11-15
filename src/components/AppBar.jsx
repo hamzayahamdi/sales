@@ -199,7 +199,7 @@ const AppBar = ({
     onStoreChange,
     storeSales = {},
     loading = false,
-    lastUpdated = '2024-03-21 09:30'
+    lastUpdated = dayjs().format('YYYY-MM-DD HH:mm')
 }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -523,7 +523,7 @@ const AppBar = ({
     }, []);
 
     const formatLastUpdated = (timestamp) => {
-        const date = dayjs(timestamp);
+        const date = dayjs(timestamp, 'YYYY-MM-DD HH:mm');
         return `${date.format('DD/MM/YYYY')} à ${date.format('HH:mm')}`;
     };
 
